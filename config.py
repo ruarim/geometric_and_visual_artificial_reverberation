@@ -1,50 +1,33 @@
 from math import floor
+from dataclasses import dataclass
 
-# constants
-FS = 44100
-SIGNAL_LENGTH = 44100
-MAX_DELAY_SECS = 1.0
-MAX_DELAY = floor(MAX_DELAY_SECS * FS)
-SPEED_OF_SOUND = 343.0
+@dataclass
+class SimulationConfig:
+    FS: int = 44100
+    SIGNAL_LENGTH: int = 44100
+    MAX_DELAY_SECS: float = 1.0
+    MAX_DELAY: int = floor(1.0 * FS)
+    SPEED_OF_SOUND: float = 343.0
 
-# parameters
-WALL_ABSORPTION = 0.25 # extend to be defined for each wall
-ROOM_DIMS = [15, 17, 15] # x, y, z - length, width, height
-SOURCE_LOC = [4.9, 4.5, 2.5] # place in center for evaluation - same below
-MIC_LOC = [4.4, 2.8, 2.7]
-CHANNEL_LEVELS = [1.0, 1.0] # left, right - use azimuth instead
-DIRECT_PATH=False
-ER_ORDER=3
+@dataclass
+class RoomConfig:
+    WALL_ABSORPTION: float = 0.25
+    ROOM_DIMS: list = (5, 7, 5)
+    SOURCE_LOC: list = (2.9, 2.5, 2.5)
+    MIC_LOC: list = (4.4, 4.8, 4.7)
+    CHANNEL_LEVELS: list = (1.0, 1.0)
+    DIRECT_PATH: bool = False
+    ER_ORDER: int = 2
 
-# test signal
-TEST_SIGNAL = "unit" # unit, noise, pulse, file
-BURST_LENGTH = 0.01
-DATA_DIR = "_samples/"
-FILE_NAME = "Clap 808 Color 03.wav"
+@dataclass
+class TestSignalConfig:
+    TEST_SIGNAL: str = "unit"
+    BURST_LENGTH: float = 0.01
+    DATA_DIR: str = "_samples/"
+    FILE_NAME: str = "Clap 808 Color 03.wav"
 
-# outputs
-OUTPUT_TO_FILE = False
-PLOT = True
-TIMER = False
-
-CONFIG = {
-    "FS": 44100,
-    "SIGNAL_LENGTH": 44100,
-    "MAX_DELAY_SECS": 1.0,
-    "MAX_DELAY": floor(MAX_DELAY_SECS * FS),
-    "SPEED_OF_SOUND": 343.0,
-    "WALL_ABSORPTION": 0.25, # extend to be defined for each wall
-    "ROOM_DIMS": [15, 17, 15], # x, y, z - length, width, height
-    "SOURCE_LOC": [4.9, 4.5, 2.5], # place in center for evaluation - same below
-    "MIC_LOC": [4.4, 2.8, 2.7],
-    "CHANNEL_LEVELS": [1.0, 1.0], # left, right - use azimuth instead
-    'DIRECT_PATH': False,
-    "ER_ORDER": 1,
-    "TEST_SIGNAL": "unit", # unit, noise, pulse, file
-    "BURST_LENGTH": 0.01,
-    "DATA_DIR": "_samples/",
-    "FILE_NAME": "Clap 808 Color 03.wav",
-    "OUTPUT_TO_FILE": False,
-    "PLOT": True,
-    "TIMER": False,
-}
+@dataclass
+class OutputConfig:
+    OUTPUT_TO_FILE: bool = False
+    PLOT: bool = True
+    TIMER: bool = False
