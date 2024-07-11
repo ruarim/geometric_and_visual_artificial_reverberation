@@ -2,13 +2,19 @@ import numpy as np
 from matplotlib import pyplot as plt
 from math import floor
 
-def plot_signal(signal, title, fs=44100, xlim=None):
-    time_vec = np.arange(len(signal)) / (fs / 1000)
+def plot_signal(signal, title, fs=44100, plot_time=True, xlim=None):
     plt.figure(figsize=(10, 4))
     plt.title(title)
-    plt.plot(time_vec, signal)
+    
+    if plot_time: 
+        time_vec = np.arange(len(signal)) / (fs / 1000)
+        plt.plot(time_vec, signal)
+        plt.xlabel('Time(ms)')
+    else:
+        plt.plot(signal) 
+        plt.xlabel('Samples')
+    
     plt.ylabel('Amplitude Linear')
-    plt.xlabel('Samples')
     if(xlim != None): plt.xlim(xlim)
     
 def plot_comparision(signals, title="Comparison", plot_time=True, fs=44100, xlim=None):

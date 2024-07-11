@@ -11,10 +11,11 @@ class SimulationConfig:
 
 @dataclass
 class RoomConfig:
-    WALL_ABSORPTION: float = 0.25
+    WALL_ABSORPTION: list = (0.25, 0.25, 0.25, 0.25, 0.25, 0.25)
+    #WALL_ABSORPTION_BANDS - 2D array of absorption at freq bands for each wall
     ROOM_DIMS: list = (5, 7, 5)
     SOURCE_LOC: list = (2.9, 2.5, 2.5)
-    MIC_LOC: list = (4.4, 4.8, 4.7)
+    MIC_LOC: list = (2.4, 2.8, 2.7)
     CHANNEL_LEVELS: list = (1.0, 1.0)
     DIRECT_PATH: bool = False
     ER_ORDER: int = 2

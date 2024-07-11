@@ -1,25 +1,36 @@
 import pyroomacoustics as pra
 import matplotlib.pyplot as plt
 from config import RoomConfig
-# @TODO refactor into class
 
 class ImageSourceMethod:
-    def __init__(self, room_config: RoomConfig):
+    def __init__(self, room_config: RoomConfig, fs=44100):
         self.room_dims = room_config.ROOM_DIMS
+        self.absorption = room_config.WALL_ABSORPTION
         self.source = room_config.SOURCE_LOC
         self.mic = room_config.MIC_LOC
         self.order = room_config.ER_ORDER
+        self.fs = fs
     
     
-    def make_room(self, room_dims, max_order, source, mic):
+    def _make_room_shoebox(self, room_dims, max_order, source, mic):
         """
         A short helper function to make the room according to config
         """
+        materials = pra.make_materials(
+            ceiling=(self.absorption[0], 0.0),
+            floor=(self.absorption[1], 0.0),
+            east=(self.absorption[2], 0.0),
+            west=(self.absorption[3], 0.0),
+            north=(self.absorption[4], 0.0),
+            south=(self.absorption[5], 0.0),
+        )
+        
         shoebox = (
             pra.ShoeBox(
                 room_dims,
+                fs=self.fs,
+                materials=materials,
                 max_order=max_order,
-                ray_tracing=False,
                 air_absorption=True,
             )
             .add_source(source)
@@ -27,14 +38,30 @@ class ImageSourceMethod:
         )
 
         return shoebox
-
-    def run(self, show=False):
+    
+    def render(self):
+        """
+        Render the room impulse response of the given geometery and materials
+        """
+        # TODO - Remove direct sound path
+        shoebox = self._make_room_shoebox(self.room_dims, self.order, self.source, self.mic)
+        
+        # run image source method and render rir
+        shoebox.image_source_model()
+        shoebox.compute_rir()
+        
+        # copy to local memory
+        rir = shoebox.rir[0][0].copy()
+        
+        return rir
+        
+    def get_source_coords(self, show=False, direct_path=False):
         """
         Method to find image source using pyroomacoustics C++ accelerated Image Source Method algorithm.
 
         return (list[list]): image sources in cartisian coordianates with the structure, x = image_source[0], y = image_source[1], z = image_source[2]
         """
-        shoebox = self.make_room(self.room_dims, self.order, self.source, self.mic)
+        shoebox = self._make_room_shoebox(self.room_dims, self.order, self.source, self.mic)
         
         # run image source method
         shoebox.image_source_model()
@@ -45,11 +72,12 @@ class ImageSourceMethod:
         # convert 2d list to list of x,y,z coords
         image_sources = self.to_coords_list(image_sources)
                 
-        # remove  the original source
-        image_sources = list(filter(self.drop_source, image_sources))
+        # # remove the original source (NOT SURE WE WANT TO DO THIS - USED FOR DIRECT PATH)
+        if not direct_path:
+            image_sources = list(filter(self.drop_source, image_sources))
         
-        if show: 
-            shoebox.plot()  
+        if show:
+            shoebox.plot()
             plt.show()
         
         return image_sources
