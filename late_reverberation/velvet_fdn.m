@@ -1,4 +1,4 @@
-function [rir] = velvet_fdn(er_signal_tdl, fs)
+function [rir] = velvet_fdn(er_signal_tdl, fs, delay_times)
 fs = double(fs);
 
 % get the size of the vector
@@ -16,10 +16,10 @@ x = [x(:,1); zeros(2*fs,1)];
 % Define FDN
 N = 8;
 numFDNInput = 1;
-numOutput = 2;
+numFDNOutput = 1;
 inputGain = ones(N,numFDNInput) / sqrt(N);
 outputGain = ones(numFDNInput, N);
-direct = zeros(numOutput,numFDNInput); % should be replaced with delay line, source -> listener
+direct = zeros(numFDNOutput,numFDNInput); % should be replaced with delay line, source -> listener
 fdnDelays = [809, 877, 937, 1049, 1151, 1249, 1373, 1499];
 numberOfStages = 2;
 sparsity = 2;
@@ -31,6 +31,7 @@ maxShift = 30;
 % absorption filters including delay of scattering matrix
 [approximation, approximationError] = matrixDelayApproximation(feedbackMatrix);
 
+% use filter-bank instead? Early reflections time should be subtracted from rt60
 RT_DC = 0.593; % lowest frequnecy decay in seconds - set from sabine eq
 RT_NY = 0.593; % highest frequnecy decay in seconds - set from sabine eq
 

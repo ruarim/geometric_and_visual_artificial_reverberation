@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from math import floor
 
-def plot_signal(signal, title, fs=44100, plot_time=True, xlim=None):
+def plot_signal(signal, title="", fs=44100, plot_time=False, xlim=None):
     plt.figure(figsize=(10, 4))
     plt.title(title)
     
@@ -17,7 +17,7 @@ def plot_signal(signal, title, fs=44100, plot_time=True, xlim=None):
     plt.ylabel('Amplitude Linear')
     if(xlim != None): plt.xlim(xlim)
     
-def plot_comparision(signals, title="Comparison", plot_time=True, fs=44100, xlim=None):
+def plot_comparision(signals, title="", plot_time=False, fs=44100, xlim=None):
     plt.figure(figsize=(10, 4))
     plt.title(title)
     for key in signals:
@@ -47,3 +47,6 @@ def linear_to_dB_norm(x):
     epsilon = 1e-20
     x_max = np.max(x)
     return 20 * np.log10((x + epsilon) / x_max)
+
+def show_plots():
+    plt.show()

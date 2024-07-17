@@ -46,10 +46,7 @@ class ImageSourceMethod:
         Render the room impulse response of the given geometery and materials
         """
         # TODO - Remove direct sound path ??
-        if(order == 0):
-            shoebox = self._make_room_shoebox(self.room_dims, self.order, self.source, self.mic)
-        else: # overide object wide reflection order
-            shoebox = self._make_room_shoebox(self.room_dims, order, self.source, self.mic)
+        shoebox = self.configure_shoebox(order)
         
         # run image source method and render rir
         shoebox.image_source_model()
@@ -62,13 +59,13 @@ class ImageSourceMethod:
         
         return rir
         
-    def get_source_coords(self, show=False, direct_path=False):
+    def get_source_coords(self, show=False, direct_path=False, order=0):
         """
         Method to find image source using pyroomacoustics C++ accelerated Image Source Method algorithm.
 
         return (list[list]): image sources in cartisian coordianates with the structure, x = image_source[0], y = image_source[1], z = image_source[2]
         """
-        shoebox = self._make_room_shoebox(self.room_dims, self.order, self.source, self.mic)
+        shoebox = self.configure_shoebox(order)
         
         # run image source method
         shoebox.image_source_model()
@@ -99,6 +96,12 @@ class ImageSourceMethod:
     def to_coords_list(self, image_sources):
         coord_list = [[image_sources[0, i], image_sources[1, i], image_sources[2, i]] for i in range(image_sources.shape[1])]
         return coord_list
+    
+    def configure_shoebox(self, order):
+        if(order == 0):
+            return self._make_room_shoebox(self.room_dims, self.order, self.source, self.mic)
+        else: # overide object wide reflection order
+            return self._make_room_shoebox(self.room_dims, order, self.source, self.mic)
 
     def find_intersection(image_source, receiver, boundary_axis, boundary_value):
         """

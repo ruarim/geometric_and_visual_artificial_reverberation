@@ -24,6 +24,8 @@ output_config = OutputConfig()
 ism = ImageSourceMethod(room_config, fs=simulation_config.FS) # pass specific config values instead
 ism_er_rir = ism.render(norm=True) # rendering early reflections with pyroomacoustics ism
 image_source_coords = ism.get_source_coords(show=False)
+image_source_coords_2nd = ism.get_source_coords(show=False, order=2)
+
 image_source_points = [Point3D(image_source) for image_source in image_source_coords]
 source_point = Point3D(room_config.SOURCE_LOC)
 mic_point = Point3D(room_config.MIC_LOC)
@@ -95,6 +97,8 @@ matlab_eng = init_matlab_eng()
 
 lr_signal = matlab_eng.velvet_fdn(er_signal_tdl, simulation_config.FS)
 
+# matlab_eng.diffusion()  
+
 # end matlab process
 matlab_eng.quit()
 
@@ -105,14 +109,14 @@ ism_full_rir = ism.render(order=80)
 
 # plot
 compare_data = {
-        # "FDN": lr_signal,
         "Convolution": er_signal_convolve,
-        'TappedDelayLine': er_signal_tdl,
+        'Tapped Delay Line': er_signal_tdl,
         "Velvet FDN": lr_signal,
+        "Full ISM": ism_full_rir / np.max(ism_full_rir),
 }
 
-xlim = [0, 1000]
-plot_comparision(compare_data, 'Early Reflections', xlim=xlim)
+xlim = [0, 2000]
+plot_comparision(compare_data, 'Early Reflections', xlim=xlim, plot_time=False)
 # plot_signal(ism_full_rir, title="Image Source Method RIR", xlim=xlim)
 # plot_signal(output_signal, 'Early Reflections - Tapped Delay Line', xlim=xlim)
 # plot_signal(lr_signal, "Late Reflections - FDN")

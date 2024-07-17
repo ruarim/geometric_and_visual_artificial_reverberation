@@ -32,6 +32,7 @@ class EarlyReflections:
         
         # self.scattering_network = ScatteringNetwork()
     
+    # TODO also return direct sound in a seperate array
     def process(self, input_signal, output_signal, type: str):
         """
         Render the early reflections
