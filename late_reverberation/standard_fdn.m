@@ -1,6 +1,4 @@
-% include fndToolbox dependancy
-addpath(genpath('fdnToolbox'))
-
+function [rir] = standard_fdn()
 % SAMPLE
 % [x, fs] = audioread('synth_dry.m4a');
 % x = [x(:,1); zeros(2*fs,1)];
@@ -36,8 +34,8 @@ RT_NY = 0.5; % seconds
 zAbsorption = zTF(absorption.b, absorption.a,'isDiagonal', true);
 
 % compute impulse response and poles/zeros and reverberation time
-output = processFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct, 'absorptionFilters', zAbsorption);
-lossless_output = processFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct);
+% output = processFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct, 'absorptionFilters', zAbsorption);
+% lossless_output = processFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct);
 
 output_transposed = processTransposedFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct, 'absorptionFilters', zAbsorption);
 lossless_output_transposed = processTransposedFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct);
@@ -45,11 +43,11 @@ lossless_output_transposed = processTransposedFDN(x, delays, feedbackMatrix, inp
 close all;
 % soundsc(x,fs);
 % soundsc(output,fs);
-figure
-hold on;
-plot(lossless_output)
-plot(output)
-hold off;
+% figure
+% hold on;
+% plot(lossless_output)
+% plot(output)
+% hold off;
 
 soundsc(output_transposed,fs);
 figure
@@ -58,11 +56,8 @@ plot(lossless_output_transposed)
 plot(output_transposed)
 hold off;
 
-audiowrite("Standard_FDN.wav", output, fs);
-audiowrite("Standard_FDN_Lossless.wav", lossless_output, fs);
-
-audiowrite("Standard_FDN_Transposed.wav", output_transposed, fs);
-audiowrite("Standard_FDN_Transposed_Lossless.wav", lossless_output_transposed, fs);
-
+rir = output_transposed;
 %% Test: script finished
 assert(1 == 1);
+
+end

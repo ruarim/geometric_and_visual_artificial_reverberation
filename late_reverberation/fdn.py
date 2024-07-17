@@ -5,11 +5,10 @@ from utils.delay_line import DelayLine
 class FeedbackDelayNetwork:
     def __init__(self, b, c, matrix, delay_times, fs, rt60_flat, rt60_bands=[], lossless=False):
         self.fs = fs
-        self.b = b
+        self.b = b / len(delay_times) # scale input to network order
         self.c = c
         self.matrix = matrix
         self.rt60_flat = rt60_flat
-        print(rt60_flat)
         self.rt60_bands = rt60_bands
         self.lossless = lossless
         self.delay_times = delay_times
@@ -25,7 +24,7 @@ class FeedbackDelayNetwork:
     # for simplicity use standard vector matrix multiplication, with no optimisation at first
     # A scalar multiplication is performed between the output vector of the delay lines and the nth row of the feedback matrix - (diva phd)
     def _apply_matrix(self, x):
-        return np.dot(self.matrix, x) # self.matrix @ x also might work
+        return np.inner(self.matrix, x) # self.matrix @ x also might work
     
     # filter vector of samples
     def _apply_rt60_filters(self):
@@ -48,13 +47,12 @@ class FeedbackDelayNetwork:
     
     def _make_feedback_gain(self): # TODO: Fix, values to close to 1.0
         gain_db = -60 * (1/self.fs * self.rt60_flat)
-        print(gain_db)
         gain_linear = pow(10, gain_db / 20)
-        print(gain_linear)
         return gain_linear
     
     # // periphery methods //
-    def process(self, x):  
+    # TAKE OUTPUT FROM MIXING MATRIX
+    def process(self, x):
         # tap out from delay
         delay_out = self._delays_out()
         
@@ -67,10 +65,10 @@ class FeedbackDelayNetwork:
         delays_mixed = self._apply_matrix(delay_out)
         
         # combine input and feedback samples
-        network_in = (delays_mixed + x) # / 2.0 ?
+        network_in = (delays_mixed + x)  * self.b # / 2.0 ?
         
         # tap in to delay
-        self._delays_in(network_in * self.b)
+        self._delays_in(network_in)
         
         # apply c
         y = delay_out * self.c

@@ -1,9 +1,33 @@
-# hadarmard 
+from scipy.linalg import hadamard
+import numpy as np
+from math import sqrt
 
-# isotropic
+def householder(n):
+    v = np.random.randn(n)
+    v /= np.linalg.norm(v)
+    H = np.eye(n) - 2 * np.outer(v, v)
+    return H
 
-# householder
+def scaled_hadamard(N):
+    """
+    Hadamard matrix scaled to the square root of the matrix size.
+    """
+    return hadamard(N) / sqrt(N)
+    
 
-# diagonal
+# does this NEED to be a class ?
+# class Matrix:
+#     def __init__(self, M):
+#         self.hardamard = hadamard(M)
+    
+    # hadarmard 
 
-# unitary interpolation
+    # isotropic
+
+    # householder
+
+    # diagonal
+
+    # unitary interpolation
+    
+    # BRDF

@@ -1,5 +1,7 @@
 import pyroomacoustics as pra
 import matplotlib.pyplot as plt
+import numpy as np
+
 from config import RoomConfig
 
 class ImageSourceMethod:
@@ -39,12 +41,15 @@ class ImageSourceMethod:
 
         return shoebox
     
-    def render(self):
+    def render(self, order=0, norm=False):
         """
         Render the room impulse response of the given geometery and materials
         """
-        # TODO - Remove direct sound path
-        shoebox = self._make_room_shoebox(self.room_dims, self.order, self.source, self.mic)
+        # TODO - Remove direct sound path ??
+        if(order == 0):
+            shoebox = self._make_room_shoebox(self.room_dims, self.order, self.source, self.mic)
+        else: # overide object wide reflection order
+            shoebox = self._make_room_shoebox(self.room_dims, order, self.source, self.mic)
         
         # run image source method and render rir
         shoebox.image_source_model()
@@ -52,6 +57,8 @@ class ImageSourceMethod:
         
         # copy to local memory
         rir = shoebox.rir[0][0].copy()
+        
+        if(norm): rir = rir / np.max(rir)
         
         return rir
         

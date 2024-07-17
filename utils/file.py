@@ -25,7 +25,7 @@ def read_wav_file(data_dir: str, file_name: str):
     
     return fs, data
 
-def write_array_to_wav(file_name: str, audio_data, fs):
+def write_array_to_wav(dir: str, file_name: str, audio_data, fs):
     date_time = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
-    output_file = f'_output/{date_time}-{file_name}.wav'
+    output_file = f'{dir}{date_time}-{file_name}.wav'
     write(output_file, fs, audio_data)

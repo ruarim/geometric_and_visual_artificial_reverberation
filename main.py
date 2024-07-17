@@ -1,26 +1,28 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy.linalg import hadamard
-from math import sqrt
+from utils.matrix import scaled_hadamard # refactor to class
+from utils.matlab import init_matlab_eng
 
-from config import SimulationConfig, RoomConfig, TestSignalConfig, OutputConfig
-from ism import ImageSourceMethod
-from early_reflections import EarlyReflections
+from config import SimulationConfig, RoomConfig, TestConfig, OutputConfig
+from early_reflections.ism import ImageSourceMethod
+from early_reflections.early_reflections import EarlyReflections
 # from late_reverberation import LateReveberation - refactor fdn here
 from utils.signals import signal
 from utils.point3D import Point3D
 from utils.plot import plot_comparision, plot_signal
 from utils.reverb_time import ReverbTime
-from fdn import FeedbackDelayNetwork
+from utils.file import write_array_to_wav
+from late_reverberation.fdn import FeedbackDelayNetwork
 
 # create instances of config classes
 simulation_config = SimulationConfig()
 room_config = RoomConfig()
-test_signal_config = TestSignalConfig()
+test_config = TestConfig()
 output_config = OutputConfig()
 
 # find image sources up to Nth order 
 ism = ImageSourceMethod(room_config, fs=simulation_config.FS) # pass specific config values instead
+ism_er_rir = ism.render(norm=True) # rendering early reflections with pyroomacoustics ism
 image_source_coords = ism.get_source_coords(show=False)
 image_source_points = [Point3D(image_source) for image_source in image_source_coords]
 source_point = Point3D(room_config.SOURCE_LOC)
@@ -32,34 +34,49 @@ er = EarlyReflections(source_point,
                       image_source_points, 
                       simulation_config,
                       room_config,
+                      ism_rir=ism_er_rir,
 )
 
 # refactor into late_reverberation class
 reverb_time = ReverbTime(room_config)
 rt60_sabine, rt60_eyring = reverb_time.sabine_eyring_t60()
 
-fdn_delay_times = [809, 877, 937, 1049, 1151, 1249, 1373, 1499]
+fdn_delay_times = [809, 877, 937, 1049, 1151, 1249, 1373, 1499] # log distributed prime numbers
 b = np.ones_like(fdn_delay_times)
 c = np.ones_like(fdn_delay_times)
-matrix = hadamard(len(fdn_delay_times)) / sqrt(len(fdn_delay_times))  # unitary matrix: normalise to the square root of num delays
+matrix = scaled_hadamard(len(fdn_delay_times))  # unitary matrix: normalise to the square root of num delays
 
-
-fdn = FeedbackDelayNetwork(b, 
-                           c, 
-                           matrix, 
-                           fdn_delay_times, 
-                           simulation_config.FS, 
-                           rt60_flat=rt60_sabine, 
-                           lossless=False,
+fdn = FeedbackDelayNetwork(
+        b, 
+        c, 
+        matrix, 
+        fdn_delay_times, 
+        simulation_config.FS, 
+        rt60_flat=rt60_sabine, 
+        lossless=True,
 )
 
 # run simulation
-input_signal = signal("unit", simulation_config.SIGNAL_LENGTH, simulation_config.FS)
+input_signal = signal(
+        test_config.SIGNAL_TYPE, 
+        simulation_config.SIGNAL_LENGTH, 
+        simulation_config.FS, 
+        data_dir=test_config.SAMPLES_DIR, 
+        file_name=test_config.FILE_NAME
+)
+
 output_signal = np.zeros_like(input_signal)
 
-er_signal = er.process(input_signal, output_signal, type='tdl')
+er_signal_tdl = er.process(input_signal, output_signal, type='tdl')
+
+er_signal_convolve = er.process(input_signal, output_signal, type='convolve')
+
+# normalise early reflections
+# er_norm = er_signal / np.max(er_signal)
+
 # TODO: Fix stability for non impulse signal
-lr_signal = [fdn.process(sample) for sample in er_signal]
+# lr_signal = [fdn.process(sample) for sample in er_signal]
+# lr_norm =  lr_signal / np.max(lr_signal)
 
 # create propigation lines for each image source -> mic
 
@@ -73,18 +90,35 @@ lr_signal = [fdn.process(sample) for sample in er_signal]
 
 # pyroomacoustics rir
 
-ism_rir = ism.render()
+# start matlab process
+matlab_eng = init_matlab_eng()
+
+lr_signal = matlab_eng.velvet_fdn(er_signal_tdl, simulation_config.FS)
+
+# end matlab process
+matlab_eng.quit()
+
+# render_full - for comparison
+ism_full_rir = ism.render(order=80)
+
+# full_ir = er_norm + lr_norm
 
 # plot
 compare_data = {
-        "FDN": lr_signal,
-        'PyRoom': ism_rir,
-        'TappedDelayLine': er_signal,
+        # "FDN": lr_signal,
+        "Convolution": er_signal_convolve,
+        'TappedDelayLine': er_signal_tdl,
+        "Velvet FDN": lr_signal,
 }
 
 xlim = [0, 1000]
-plot_comparision(compare_data, 'Early Reflections - Tapped Delay Line', xlim=xlim)
-plot_signal(ism_rir, title="Image Source Method RIR", xlim=xlim)
-plot_signal(output_signal, 'Early Reflections - Tapped Delay Line', xlim=xlim)
-plot_signal(lr_signal, "Late Reflections - FDN")
+plot_comparision(compare_data, 'Early Reflections', xlim=xlim)
+# plot_signal(ism_full_rir, title="Image Source Method RIR", xlim=xlim)
+# plot_signal(output_signal, 'Early Reflections - Tapped Delay Line', xlim=xlim)
+# plot_signal(lr_signal, "Late Reflections - FDN")
+# plot_signal(full_ir, "Full IR")
 plt.show()
+
+if(output_config.OUTPUT_TO_FILE):
+        # output early reflections RIR
+        write_array_to_wav(test_config.ER_RIR_DIR, test_config.SIGNAL_TYPE, er_signal_tdl, simulation_config.FS)

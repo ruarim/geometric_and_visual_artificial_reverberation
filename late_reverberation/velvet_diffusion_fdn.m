@@ -1,5 +1,4 @@
-addpath(genpath('fdnToolbox'))
-
+function [rir] = velvet_diffusion_fdn()
 % SAMPLE
 [x, fs] = audioread('Geometric_FDN_Input/Early_RIR_Unit.wav');
 x = [x(:,1); zeros(2*fs,1)];
@@ -106,5 +105,9 @@ hold off;
 % audiowrite("Velvet_Diffusion_FDN_Transposed_Unit_ER_Full_RIR.wav", full_rir, fs);
 % audiowrite("Velvet_FDN_Transposed_Lossless.wav_Unit_ER.wav", lossless_output_transposed, fs);
 
+rir = output_transposed;
+
 %% Test: script finished
 assert(1 == 1);
+
+end
