@@ -30,7 +30,7 @@ from config import RoomConfig
 class ReverbTime:
     def __init__(self, room_config: RoomConfig):
         self.room_dims = room_config.ROOM_DIMS
-        self.absorption = np.array(room_config.WALL_ABSORPTION)
+        self.absorption = np.array([room_config.WALL_ABSORPTION[wall] for wall in room_config.WALL_ABSORPTION])
     
     def calc_V(self, dims):
         """

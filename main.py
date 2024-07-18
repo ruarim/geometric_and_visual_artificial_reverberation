@@ -23,20 +23,22 @@ output_config = OutputConfig()
 # find image sources up to Nth order 
 ism = ImageSourceMethod(room_config, fs=simulation_config.FS) # pass specific config values instead
 ism_er_rir = ism.render(norm=True) # rendering early reflections with pyroomacoustics ism
-image_source_coords = ism.get_source_coords(show=False)
-image_source_coords_2nd = ism.get_source_coords(show=False, order=2)
+image_source_coords, image_source_walls = ism.get_source_coords(show=False)
+image_source_coords_2nd, _ = ism.get_source_coords(show=False, order=2)
 
 image_source_points = [Point3D(image_source) for image_source in image_source_coords]
 source_point = Point3D(room_config.SOURCE_LOC)
 mic_point = Point3D(room_config.MIC_LOC)
 
 # tapped delay line or render ism and convolve with input
-er = EarlyReflections(source_point,  
-                      mic_point, 
-                      image_source_points, 
-                      simulation_config,
-                      room_config,
-                      ism_rir=ism_er_rir,
+er = EarlyReflections(
+        source_point,  
+        mic_point, 
+        image_source_points,
+        image_source_walls,
+        simulation_config,
+        room_config,
+        ism_rir=ism_er_rir,
 )
 
 # refactor into late_reverberation class
@@ -44,9 +46,6 @@ reverb_time = ReverbTime(room_config)
 rt60_sabine, rt60_eyring = reverb_time.rt60s()
 
 fdn_delay_times = np.array([809, 877, 937, 1049, 1151, 1249, 1373, 1499]) # log distributed prime numbers, TODO: mutual prime around mean free path
-b = np.ones_like(fdn_delay_times)
-c = np.ones_like(fdn_delay_times)
-matrix = scaled_hadamard(len(fdn_delay_times))  # unitary matrix: normalise to the square root of num delays
 
 # run simulation
 input_signal = signal(
@@ -54,24 +53,24 @@ input_signal = signal(
         simulation_config.SIGNAL_LENGTH, 
         simulation_config.FS, 
         data_dir=test_config.SAMPLES_DIR, 
-        file_name=test_config.FILE_NAME
+        file_name=test_config.FILE_NAME,
 )
 
 output_signal = np.zeros_like(input_signal)
 
 er_signal_tdl = er.process(input_signal, output_signal, type='tdl')
-
 er_signal_convolve = er.process(input_signal, output_signal, type='convolve')
 
 # start matlab process
 matlab_eng = init_matlab_eng()
 
+# apply FDN reverberation
 lr_signal = np.array(matlab_eng.velvet_fdn(er_signal_tdl, fdn_delay_times, simulation_config.FS))
 
 # end matlab process
 matlab_eng.quit()
 
-# mono for now
+# mono for now - to normalised combination
 full_ir = np.array([er + lr[0] for er, lr in zip(er_signal_tdl, lr_signal)])
 
 # render pyroomacoustics rir for comparison
@@ -87,12 +86,12 @@ if(output_config.OUTPUT_TO_FILE):
 compare_data = {
         # "Full ISM": ism_full_rir / np.max(ism_full_rir),
         # "Convolution": er_signal_convolve,
-        "Full RIR": full_ir,
+        # "Full RIR": full_ir,
         'Tapped Delay Line': er_signal_tdl,
         "Velvet FDN": lr_signal,
 }
      
-xlim = None
+xlim = [10, 310]
 y_offset = np.max(full_ir) + np.abs(np.min(full_ir))
 plot_comparision(
         compare_data, 

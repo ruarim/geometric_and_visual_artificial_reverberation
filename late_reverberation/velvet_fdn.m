@@ -1,16 +1,10 @@
-function [rir] = velvet_fdn(er_signal_tdl, fs, delay_times)
+% Velvet FDN where the stucture is inverted such that the output of
+% taken from the mixing matrix instead of the delay lines.
+function [rir] = velvet_fdn(er_signal_tdl, delay_times, fs)
 fs = double(fs);
 
-% get the size of the vector
-[rows, cols] = size(er_signal_tdl);
-
-% check if the vector is a column vector (more rows than columns)
-if rows < cols
-    % if it is a column vector, transpose it
-    er_signal_tdl = er_signal_tdl';
-end
-
-x = er_signal_tdl;
+% input signal
+x = transpose_row_2_col(er_signal_tdl);
 x = [x(:,1); zeros(2*fs,1)];
 
 % Define FDN
@@ -21,9 +15,10 @@ inputGain = ones(N,numFDNInput) / sqrt(N);
 outputGain = ones(numFDNInput, N);
 direct = zeros(numFDNOutput,numFDNInput); % should be replaced with delay line, source -> listener
 fdnDelays = [809, 877, 937, 1049, 1151, 1249, 1373, 1499];
+% fdnDelays = transpose_row_2_col(delay_times); TODO: allow addition of scattering matrix delay approx
 numberOfStages = 2;
 sparsity = 2;
-maxShift = 30;
+maxShift = 30; 
 
 [feedbackMatrix, revFeedbackMatrix] = constructVelvetFeedbackMatrix(N,numberOfStages,sparsity);
 [feedbackMatrix, revFeedbackMatrix] = randomMatrixShift(maxShift, feedbackMatrix, revFeedbackMatrix);
@@ -42,47 +37,8 @@ zAbsorption = zTF(absorption.b, absorption.a,'isDiagonal', true);
 % add transposed conditional
 
 output_transposed = processTransposedFDN(x, fdnDelays, feedbackMatrix, inputGain, outputGain, direct, 'absorptionFilters', zAbsorption);
-lossless_output_transposed = processTransposedFDN(x, fdnDelays, feedbackMatrix, inputGain, outputGain, direct);
+% lossless_output_transposed = processTransposedFDN(x, fdnDelays, feedbackMatrix, inputGain, outputGain, direct);
 % output_transposed_norm = output_transposed / max(x);
-
-full_rir = x + output_transposed;
-
-% Delay output by early reflections
-% Combine direct signal - (Early reflections) with delayed FDN output.
-close all;
-% soundsc(x,fs);
-
-% figure
-% hold on;
-% plot(lossless_output)
-% plot(output)
-% hold off;
-
-% play output
-soundsc(full_rir,fs);
-
-% figure
-% hold on;
-% plot(lossless_output_transposed)
-% plot(output_transposed)
-% hold off;
-
-% figure
-% hold on;
-% plot(output_transposed)
-% plot(x)
-% hold off;
-
-% figure
-% hold on;
-% plot(full_rir)
-% hold off;
-
-% audiowrite([FULL_RIR_DIR "Velvet_FDN_Unit_ER.wav"], output, fs);
-% audiowrite([FULL_RIR_DIR "Velvet_FDN_Lossless.wav_Unit_ER.wav"], lossless_output, fs);
-
-% audiowrite([FULL_RIR_DIR "Velvet_FDN_Transposed_Unit_ER_Full_RIR.wav"], full_rir, fs);
-% audiowrite([FULL_RIR_DIR "Velvet_FDN_Transposed_Lossless.wav_Unit_ER.wav"], lossless_output_transposed, fs);
 
 rir = output_transposed;
 

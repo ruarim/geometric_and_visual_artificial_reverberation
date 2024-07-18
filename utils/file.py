@@ -8,10 +8,8 @@ import warnings
 def read_wav_file(data_dir: str, file_name: str): 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", scipy.io.wavfile.WavFileWarning)
-        
         # construct the path to the WAV file.
         wav_fname = path.join(data_dir, file_name)
-
         # read the WAV file.
         fs, data = scipy.io.wavfile.read(wav_fname)
     
@@ -26,6 +24,7 @@ def read_wav_file(data_dir: str, file_name: str):
     return fs, data
 
 def write_array_to_wav(dir: str, file_name: str, audio_data, fs):
+    # TODO: create folder if dir doesn't exist
     date_time = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
     output_file = f'{dir}{date_time}-{file_name}.wav'
     write(output_file, fs, audio_data)
