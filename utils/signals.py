@@ -26,7 +26,7 @@ def noise_burst(signal_length, burst_secs, fs, gain):
 # read a sample file
 def file(data_dir, file_name):
     fs, data = read_wav_file(data_dir, file_name)
-    return data
+    return data, fs
 
 # return fs depenant on signal type 
 def signal(choice, signal_length, fs,burst_secs=0.1, gain=1.0, data_dir="", file_name="", channels=1):
@@ -35,9 +35,14 @@ def signal(choice, signal_length, fs,burst_secs=0.1, gain=1.0, data_dir="", file
     if choice == "noise": 
         signal = noise_burst(signal_length, burst_secs, fs, gain)
     if choice == "file": 
-        signal = file(data_dir, file_name) # not returning fs for now
+        signal, file_fs = file(data_dir, file_name) # not returning file fs for now
+        # get mono
+        if(channels == 1 and np.array(signal.shape)[1] == 2): signal = [sample[0] for sample in signal] 
+        # more general function fix for mono
+        # if(channels != np.array(signal.shape)[1]): signal = [sample[:channels] for sample in signal] 
     # if "pulse": return pulse with pitch/harmonic content (sine, square, tri, saw...)
     
+    # if len(signal) > signal_length: signal = signal[:signal_length]
     if channels > 1: return stack(signal, channels)
     else: return signal
 

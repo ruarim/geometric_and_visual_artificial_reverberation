@@ -41,22 +41,12 @@ er = EarlyReflections(source_point,
 
 # refactor into late_reverberation class
 reverb_time = ReverbTime(room_config)
-rt60_sabine, rt60_eyring = reverb_time.sabine_eyring_t60()
+rt60_sabine, rt60_eyring = reverb_time.rt60s()
 
-fdn_delay_times = [809, 877, 937, 1049, 1151, 1249, 1373, 1499] # log distributed prime numbers
+fdn_delay_times = np.array([809, 877, 937, 1049, 1151, 1249, 1373, 1499]) # log distributed prime numbers, TODO: mutual prime around mean free path
 b = np.ones_like(fdn_delay_times)
 c = np.ones_like(fdn_delay_times)
 matrix = scaled_hadamard(len(fdn_delay_times))  # unitary matrix: normalise to the square root of num delays
-
-fdn = FeedbackDelayNetwork(
-        b, 
-        c, 
-        matrix, 
-        fdn_delay_times, 
-        simulation_config.FS, 
-        rt60_flat=rt60_sabine, 
-        lossless=True,
-)
 
 # run simulation
 input_signal = signal(
@@ -73,56 +63,48 @@ er_signal_tdl = er.process(input_signal, output_signal, type='tdl')
 
 er_signal_convolve = er.process(input_signal, output_signal, type='convolve')
 
-# normalise early reflections
-# er_norm = er_signal / np.max(er_signal)
-
-# TODO: Fix stability for non impulse signal
-# lr_signal = [fdn.process(sample) for sample in er_signal]
-# lr_norm =  lr_signal / np.max(lr_signal)
-
-# create propigation lines for each image source -> mic
-
-# scatter the output of the progigation lines
-
-# use BRDF - specular reflections go to FDN, scattering goes to mic.
-
-# feed output of scattering to a feedback delay network
-
-# output summation of scattering
-
-# pyroomacoustics rir
-
 # start matlab process
 matlab_eng = init_matlab_eng()
 
-lr_signal = matlab_eng.velvet_fdn(er_signal_tdl, simulation_config.FS)
-
-# matlab_eng.diffusion()  
+lr_signal = np.array(matlab_eng.velvet_fdn(er_signal_tdl, fdn_delay_times, simulation_config.FS))
 
 # end matlab process
 matlab_eng.quit()
 
-# render_full - for comparison
+# mono for now
+full_ir = np.array([er + lr[0] for er, lr in zip(er_signal_tdl, lr_signal)])
+
+# render pyroomacoustics rir for comparison
 ism_full_rir = ism.render(order=80)
 
-# full_ir = er_norm + lr_norm
-
-# plot
-compare_data = {
-        "Convolution": er_signal_convolve,
-        'Tapped Delay Line': er_signal_tdl,
-        "Velvet FDN": lr_signal,
-        "Full ISM": ism_full_rir / np.max(ism_full_rir),
-}
-
-xlim = [0, 2000]
-plot_comparision(compare_data, 'Early Reflections', xlim=xlim, plot_time=False)
-# plot_signal(ism_full_rir, title="Image Source Method RIR", xlim=xlim)
-# plot_signal(output_signal, 'Early Reflections - Tapped Delay Line', xlim=xlim)
-# plot_signal(lr_signal, "Late Reflections - FDN")
-# plot_signal(full_ir, "Full IR")
-plt.show()
+config_str = f'ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}'
 
 if(output_config.OUTPUT_TO_FILE):
         # output early reflections RIR
         write_array_to_wav(test_config.ER_RIR_DIR, test_config.SIGNAL_TYPE, er_signal_tdl, simulation_config.FS)
+        write_array_to_wav(test_config.FULL_RIR_DIR, f"{config_str}", full_ir, simulation_config.FS)
+# plot
+compare_data = {
+        # "Full ISM": ism_full_rir / np.max(ism_full_rir),
+        # "Convolution": er_signal_convolve,
+        "Full RIR": full_ir,
+        'Tapped Delay Line': er_signal_tdl,
+        "Velvet FDN": lr_signal,
+}
+     
+xlim = None
+y_offset = np.max(full_ir) + np.abs(np.min(full_ir))
+plot_comparision(
+        compare_data, 
+        f'ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}', 
+        xlim=xlim, 
+        plot_time=True, 
+        y_offset=y_offset
+)
+
+# plot_signal(ism_full_rir, title="Image Source Method RIR", xlim=xlim)
+# plot_signal(output_signal, 'Early Reflections - Tapped Delay Line', xlim=xlim)
+# plot_signal(lr_signal, "Late Reflections - FDN")
+# plot_signal(full_ir, "Full IR")
+plot_signal(full_ir, fs=simulation_config.FS, xlim=xlim, plot_time=True)
+plt.show()

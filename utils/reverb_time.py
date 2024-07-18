@@ -65,7 +65,7 @@ class ReverbTime:
         
         return np.array([front_back, front_back, side, side, side, side])
 
-    def sabine_T60(self, V: float, A, alpha):
+    def sabine_rt60(self, V: float, A, alpha):
         """
         Calculate reverberation time using Sabine's formula.
         
@@ -82,7 +82,7 @@ class ReverbTime:
             raise ValueError("Absorption coefficients should be between 0 and 1.")
         return (scaling_factor * V) / np.sum(A * alpha)
 
-    def eyring_T60(self, V: float, A, alpha):
+    def eyring_rt60(self, V: float, A, alpha):
         """
         Calculate reverberation time using Eyring's formula.
         
@@ -106,11 +106,14 @@ class ReverbTime:
         
         return (scaling_factor * V) / (-total_area * np.log(1 - total_absorption / total_area)) # is "-total_area" correct
 
-    def sabine_eyring_t60(self):
+    def rt60s(self):
         V = self.calc_V(self.room_dims)
         A = self.calc_A(self.room_dims)
 
-        sabine = self.sabine_T60(V, A, self.absorption)
-        eyring = self.eyring_T60(V, A, self.absorption)
+        sabine = self.sabine_rt60(V, A, self.absorption)
+        eyring = self.eyring_rt60(V, A, self.absorption)
 
         return sabine, eyring
+    
+    def rt60_bands(self):
+        pass
