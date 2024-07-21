@@ -1,17 +1,18 @@
-from scipy.io.wavfile import write, read
-import scipy.io
+from scipy.io.wavfile import write, read, WavFileWarning
 from datetime import datetime
-from os import path 
+from os import path
 import numpy as np
 import warnings
+import csv
+import json
 
 def read_wav_file(data_dir: str, file_name: str): 
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore", scipy.io.wavfile.WavFileWarning)
+        warnings.simplefilter("ignore", WavFileWarning)
         # construct the path to the WAV file.
         wav_fname = path.join(data_dir, file_name)
         # read the WAV file.
-        fs, data = scipy.io.wavfile.read(wav_fname)
+        fs, data = read(wav_fname)
     
     # determine the bit depth of the data and normalize it to the range [-1, 1].
     if data.dtype == np.int16:
@@ -28,3 +29,23 @@ def write_array_to_wav(dir: str, file_name: str, audio_data, fs):
     date_time = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
     output_file = f'{dir}{date_time}-{file_name}.wav'
     write(output_file, fs, audio_data)
+    
+def read_csv(path):
+    with open(path, newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        # Read the header row
+        header = next(reader)
+        # Initialize a dictionary to store columns
+        columns = {column: [] for column in header}
+                
+        # Iterate through the rows and populate the columns
+        for row in reader:
+            for i, column in enumerate(header):
+                columns[column].append(row[i])
+        
+        return columns
+
+def read_json(path):
+    with open(path, 'r') as jsonfile:
+        data = json.load(jsonfile)
+    return data

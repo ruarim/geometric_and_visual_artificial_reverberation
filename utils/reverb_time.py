@@ -30,9 +30,12 @@ from config import RoomConfig
 class ReverbTime:
     def __init__(self, room_config: RoomConfig):
         self.room_dims = room_config.ROOM_DIMS
-        self.absorption = np.array([room_config.WALL_ABSORPTION[wall] for wall in room_config.WALL_ABSORPTION])
+        self.absorption_flat = np.array([room_config.WALL_ABSORPTION[wall] for wall in room_config.WALL_ABSORPTION])
+        self.V = self.calc_V(self.room_dims)
+        self.A = self.calc_A(self.room_dims)
     
-    def calc_V(self, dims):
+    @staticmethod
+    def calc_V(dims):
         """
         Calculate the Volume of a room.
         
@@ -47,7 +50,8 @@ class ReverbTime:
         
         return dims[0] * dims[1] * dims[2]
 
-    def calc_A(self, dims):
+    @staticmethod
+    def calc_A(dims):
         """
         Calculate the surface area of walls in a room.
         
@@ -65,7 +69,8 @@ class ReverbTime:
         
         return np.array([front_back, front_back, side, side, side, side])
 
-    def sabine_rt60(self, V: float, A, alpha):
+    @staticmethod
+    def sabine_rt60(V: float, A, alpha):
         """
         Calculate reverberation time using Sabine's formula.
         
@@ -82,7 +87,8 @@ class ReverbTime:
             raise ValueError("Absorption coefficients should be between 0 and 1.")
         return (scaling_factor * V) / np.sum(A * alpha)
 
-    def eyring_rt60(self, V: float, A, alpha):
+    @staticmethod
+    def eyring_rt60(V: float, A, alpha):
         """
         Calculate reverberation time using Eyring's formula.
         
@@ -106,14 +112,20 @@ class ReverbTime:
         
         return (scaling_factor * V) / (-total_area * np.log(1 - total_absorption / total_area)) # is "-total_area" correct
 
-    def rt60s(self):
-        V = self.calc_V(self.room_dims)
-        A = self.calc_A(self.room_dims)
-
-        sabine = self.sabine_rt60(V, A, self.absorption)
-        eyring = self.eyring_rt60(V, A, self.absorption)
+    def rt60s(self):        
+        sabine = self.sabine_rt60(self.V, self.A, self.absorption_flat)
+        eyring = self.eyring_rt60(self.V, self.A, self.absorption_flat)
 
         return sabine, eyring
     
-    def rt60_bands(self):
-        pass
+    def rt60s_bands(self, alphas: list[list]):
+        sabine_bands = []
+        eyring_bands = []
+        
+        # for each coloumn(band) in alphas array
+        for i in range(len(alphas[0])):
+            col = alphas[:, i]
+            sabine_bands.append(self.sabine_rt60(self.V, self.A, col))
+            eyring_bands.append(self.eyring_rt60(self.V, self.A, col))
+
+        return sabine_bands, eyring_bands

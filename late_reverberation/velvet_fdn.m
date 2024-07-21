@@ -1,6 +1,6 @@
 % Velvet FDN where the stucture is inverted such that the output of
 % taken from the mixing matrix instead of the delay lines.
-function [rir] = velvet_fdn(er_signal_tdl, delay_times, fs)
+function [rir] = velvet_fdn(fs, er_signal_tdl, delay_times, rt60)
 fs = double(fs);
 
 % input signal
@@ -27,8 +27,8 @@ maxShift = 30;
 [approximation, approximationError] = matrixDelayApproximation(feedbackMatrix);
 
 % use filter-bank instead? Early reflections time should be subtracted from rt60
-RT_DC = 0.593; % lowest frequnecy decay in seconds - set from sabine eq
-RT_NY = 0.593; % highest frequnecy decay in seconds - set from sabine eq
+RT_NY = rt60 / 2; % highest frequnecy decay in seconds - set from sabine eq
+RT_DC = rt60 * 2; % lowest frequnecy decay in seconds - set from sabine eq
 
 % Use filterbank instead
 [absorption.b,absorption.a] = onePoleAbsorption(RT_DC, RT_NY, fdnDelays + approximation, fs);

@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.fft import fft, ifft
 
-def freq_domain_convolution(input_signal, rir, output_signal):
+def fft_convolution(input_signal, rir, output_signal):
     # Find the next power of two for zero-padding (for efficient FFT computation)
     n = len(input_signal) + len(rir) - 1
     N = 2 ** np.ceil(np.log2(n)).astype(int)

@@ -19,8 +19,16 @@ class RoomConfig:
         "floor": 0.25,
         "ceiling": 0.25,
     })
-    #WALL_ABSORPTION_BANDS - 2D array of absorption at freq bands for each wall - from surface descriptions file get_absorption_coeffs("material_name") 
-    ROOM_DIMS: tuple = (5, 7, 5)
+    WALL_MATERIALS: dict = field(default_factory=lambda: {
+        "north": "hard_surface",
+        "south": "hard_surface",
+        "east": "hard_surface",
+        "west": "hard_surface",
+        "floor": "hard_surface",
+        "ceiling": "hard_surface",
+    })
+    MATERIALS_DIR: str = "_data/vorlander_auralization/materials.json"
+    ROOM_DIMS: tuple = (15, 17, 15)
     SOURCE_LOC: tuple = (2.9, 2.5, 2.5)
     MIC_LOC: tuple = (2.4, 2.8, 2.7)
     CHANNEL_LEVELS: tuple = (1.0, 1.0)
