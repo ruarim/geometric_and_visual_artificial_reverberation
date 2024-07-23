@@ -9,6 +9,7 @@
 # direct path component should be removed for evaluation
 
 import numpy as np
+from matplotlib import pyplot as plt
 from config import RoomConfig
 
 # from evaluation.rt60 import measure_rt60
@@ -118,14 +119,33 @@ class ReverbTime:
 
         return sabine, eyring
     
-    def rt60s_bands(self, alphas: list[list]):
-        sabine_bands = []
-        eyring_bands = []
+    def rt60s_bands(self, alphas: list[list], bands: list[float], plot=False):
+        sabine_bands = np.array([self.sabine_rt60(self.V, self.A, alphas[:, i]) for i in range(len(alphas[0]))])
+        eyring_bands = np.array([self.eyring_rt60(self.V, self.A, alphas[:, i]) for i in range(len(alphas[0]))])
         
-        # for each coloumn(band) in alphas array
-        for i in range(len(alphas[0])):
-            col = alphas[:, i]
-            sabine_bands.append(self.sabine_rt60(self.V, self.A, col))
-            eyring_bands.append(self.eyring_rt60(self.V, self.A, col))
-
+        rt60s = {
+            "Sabine": sabine_bands,
+            "Eyring": eyring_bands 
+        }
+        
+        if plot:
+            self._plot_rt60_bands(rt60s, bands)
+        
         return sabine_bands, eyring_bands
+    
+    def _plot_rt60_bands(self, rt60s, bands):
+        """
+        Plot the coefficents at frequnecy bands for each wall
+        """
+        plt.figure(figsize=(10, 4))
+        plt.xscale('log')
+        plt.xticks(bands, labels=[str(band) for band in bands])
+
+        plt.xlabel('Bands')
+        plt.ylabel('Reverb Time (-60dB secs)')
+        plt.title('Predicted Reverb Time at Frequency Bands')
+        
+        for rt60_type in rt60s:
+            plt.plot(bands, rt60s[rt60_type], label=rt60_type)
+        
+        plt.legend()

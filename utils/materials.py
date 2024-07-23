@@ -8,8 +8,9 @@ class Materials:
         self.fs = fs
         self.materials: dict = read_json(data_dir)
         self.walls_material = walls_material
+        self.freq_bands = np.array(self.materials["center_freqs"])
         self.materials_coeffs = self._get_coefficients()
-        self.freq_bands: list[float] = self.materials["center_freqs"]
+        self.extrapolated_coeffs = self._extrapolate_dc_nyquist()
     
     def plots_coefficients(self):
         """
@@ -27,9 +28,8 @@ class Materials:
             plt.plot(self.freq_bands, coefficients, label=f"{wall} - {self.walls_material[wall]}")
         
         plt.legend()
-        plt.show()
         
-    def extrapolate_dc_nyquist(self):
+    def _extrapolate_dc_nyquist(self):
         """
         For now this is a relativly crude approximation.
         
@@ -38,17 +38,19 @@ class Materials:
         # add the frequency bands
         dc = 0
         nyquist = self.fs / 2
-        self.freq_bands = [dc] + self.freq_bands + [nyquist]
-                
-        # for each wall extrapolate coeffs to 0 Hz and Nyquist
-        for i in range(len(self.materials_coeffs)):
-            wall_coeffs = self.materials_coeffs[i]
-
-            max_value = wall_coeffs[-1]
-            min_value = wall_coeffs[0]
-            # extend the coeffs via array concatination
-            self.materials_coeffs[i] = [min_value] + wall_coeffs + [max_value]
+        self.extrapolated_freq_bands = np.concatenate(([dc], self.freq_bands, [nyquist]))
         
+        # for each wall extrapolate coeffs to 0 Hz and Nyquist            
+        return np.array([self._extrapolate_band(i) for i in range(len(self.materials_coeffs))])
+       
+    def _extrapolate_band(self, i):
+        wall_coeffs = self.materials_coeffs[i]
+
+        max_value = wall_coeffs[-1]
+        min_value = wall_coeffs[0]
+        
+        return np.concatenate(([min_value], wall_coeffs, [max_value]))
+            
     def _get_coefficients(self):
         """
         Given a list of material names get the corresponding values from the materials data.

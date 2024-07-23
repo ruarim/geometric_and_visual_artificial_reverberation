@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 @dataclass
 class SimulationConfig:
     FS: int = 44100
-    SIGNAL_LENGTH: int = 22050
+    SIGNAL_LENGTH: int = (FS * 2)
     MAX_DELAY_SECS: float = 1.0
     MAX_DELAY: int = floor(1.0 * FS)
     SPEED_OF_SOUND: float = 343.0
@@ -22,13 +22,13 @@ class RoomConfig:
     WALL_MATERIALS: dict = field(default_factory=lambda: {
         "north": "hard_surface",
         "south": "hard_surface",
-        "east": "hard_surface",
-        "west": "hard_surface",
-        "floor": "hard_surface",
+        "east": "panel_fabric_covered_8pcf",
+        "west": "panel_fabric_covered_8pcf",
+        "floor": "carpet_cotton",
         "ceiling": "hard_surface",
     })
     MATERIALS_DIR: str = "_data/vorlander_auralization/materials.json"
-    ROOM_DIMS: tuple = (15, 17, 15)
+    ROOM_DIMS: tuple = (5, 7, 5)
     SOURCE_LOC: tuple = (2.9, 2.5, 2.5)
     MIC_LOC: tuple = (2.4, 2.8, 2.7)
     CHANNEL_LEVELS: tuple = (1.0, 1.0)

@@ -1,13 +1,13 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from utils.matlab import init_matlab_eng
 
+from utils.matlab import init_matlab_eng
 from config import SimulationConfig, RoomConfig, TestConfig, OutputConfig
 from early_reflections.ism import ImageSourceMethod
 from early_reflections.early_reflections import EarlyReflections
 from utils.signals import signal
 from utils.point3D import Point3D
-from utils.plot import plot_comparision, plot_signal
+from utils.plot import plot_comparision, plot_signal, spectrogram
 from utils.reverb_time import ReverbTime
 from utils.file import write_array_to_wav
 from utils.materials import Materials
@@ -20,8 +20,6 @@ output_config = OutputConfig()
 
 # get the absoprtion coefficients at frequnecy bands for each wall
 materials = Materials(room_config.WALL_MATERIALS, room_config.MATERIALS_DIR, simulation_config.FS)
-# materials.extrapolate_dc_nyquist() TODO: fix this
-materials.plots_coefficients()
 
 # find image sources up to Nth order 
 ism = ImageSourceMethod(room_config, fs=simulation_config.FS) # pass specific config values instead
@@ -44,9 +42,9 @@ er = EarlyReflections(
 
 reverb_time = ReverbTime(room_config)
 rt60_sabine, rt60_eyring = reverb_time.rt60s()
-rt60_sabine_bands, rt60_eyring_bands = reverb_time.rt60s_bands(materials.materials_coeffs)
+rt60_sabine_bands, rt60_eyring_bands = reverb_time.rt60s_bands(materials.extrapolated_coeffs, materials.extrapolated_freq_bands, plot=True)
 
-
+# from mean free path
 fdn_delay_times = np.array([809, 877, 937, 1049, 1151, 1249, 1373, 1499]) # log distributed prime numbers, TODO: mutual prime around mean free path
 
 # run acoustic simulation
@@ -67,7 +65,7 @@ er_signal_convolve = er.process(input_signal, output_signal, type='convolve')
 matlab_eng = init_matlab_eng()
 
 # apply FDN reverberation to output of early reflection stage
-lr_signal = np.array(matlab_eng.velvet_fdn(simulation_config.FS, er_signal_tdl, fdn_delay_times, rt60_sabine))
+lr_signal = np.array(matlab_eng.velvet_fdn(simulation_config.FS, er_signal_tdl, fdn_delay_times, rt60_sabine_bands, materials.extrapolated_freq_bands))
 
 # apply in parralel
 # input should be delayed by shortest image source
@@ -77,42 +75,49 @@ lr_signal = np.array(matlab_eng.velvet_fdn(simulation_config.FS, er_signal_tdl, 
 matlab_eng.quit()
 
 # mono for now - to normalised combination
-full_ir = np.array([er + lr[0] for er, lr in zip(er_signal_tdl, lr_signal)])
+full_rir = np.array([er + lr[0] for er, lr in zip(er_signal_tdl, lr_signal)])
 
 # render pyroomacoustics rir for comparison
 ism_full_rir = ism.render(order=80)
+ism_full_rir_norm = ism_full_rir / np.max(ism_full_rir)
 
 config_str = f'ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}'
 
-if(output_config.OUTPUT_TO_FILE):
+if output_config.OUTPUT_TO_FILE:
         # output early reflections RIR
         write_array_to_wav(test_config.ER_RIR_DIR, test_config.SIGNAL_TYPE, er_signal_tdl, simulation_config.FS)
-        write_array_to_wav(test_config.FULL_RIR_DIR, f"{config_str}", full_ir, simulation_config.FS)
-# plot
-compare_data = {
-        # "Convolution": er_signal_convolve,
-        # "Full RIR": full_ir,
-        "Velvet FDN": lr_signal,
-        'Tapped Delay Line': er_signal_tdl,
-        "Convolution": er_signal_convolve,
-        # "Full ISM": ism_full_rir / np.max(ism_full_rir),
-}
+        write_array_to_wav(test_config.FULL_RIR_DIR, f"{config_str}", full_rir, simulation_config.FS)
 
-xlim = [0, 310]
-offset_ref = full_ir
-y_offset = np.max(offset_ref) + np.abs(np.min(offset_ref))
+if output_config.PLOT:
+        materials.plots_coefficients()
+        
+        # plot
+        compare_data = {
+                # "Convolution": er_signal_convolve,
+                "Velvet FDN": lr_signal,
+                'Tapped Delay Line': er_signal_tdl,
+                "Full ISM": ism_full_rir_norm,
+        }
 
-plot_comparision(
-        compare_data, 
-        f'ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}', 
-        xlim=xlim, 
-        plot_time=True,
-        y_offset=0.0
-)
+        xlim = [0, 500]
+        offset_ref = full_rir
+        y_offset = np.max(offset_ref) + np.abs(np.min(offset_ref))
 
-# plot_signal(ism_full_rir, title="Image Source Method RIR", xlim=xlim)
-# plot_signal(output_signal, 'Early Reflections - Tapped Delay Line', xlim=xlim)
-# plot_signal(lr_signal, "Late Reflections - FDN")
-# plot_signal(full_ir, "Full IR")
-plot_signal(full_ir, fs=simulation_config.FS, xlim=xlim, plot_time=True)
-plt.show()
+        plot_comparision(
+                compare_data, 
+                f'ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}', 
+                xlim=xlim, 
+                plot_time=True,
+                y_offset=0.0
+        )
+
+        # plot_signal(ism_full_rir, title="Image Source Method RIR", xlim=xlim)
+        # plot_signal(output_signal, 'Early Reflections - Tapped Delay Line', xlim=xlim)
+        # plot_signal(lr_signal, "Late Reflections - FDN")
+        # plot_signal(full_ir, "Full IR")
+        
+        spec_xlim = [0, 2]  
+        plot_signal(full_rir, fs=simulation_config.FS, xlim=xlim, plot_time=True)
+        spectrogram(full_rir, sr=simulation_config.FS, title='Spectrogram of ISM/FDN RIR', xlim=spec_xlim)
+        spectrogram(ism_full_rir_norm, sr=simulation_config.FS, title='Spectrogram of ISM RIR', xlim=spec_xlim)
+        plt.show()

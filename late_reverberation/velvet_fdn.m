@@ -1,6 +1,6 @@
 % Velvet FDN where the stucture is inverted such that the output of
 % taken from the mixing matrix instead of the delay lines.
-function [rir] = velvet_fdn(fs, er_signal_tdl, delay_times, rt60)
+function [rir] = velvet_fdn(fs, er_signal_tdl, delay_times, rt60s, rt60_bands)
 fs = double(fs);
 
 % input signal
@@ -8,17 +8,17 @@ x = transpose_row_2_col(er_signal_tdl);
 x = [x(:,1); zeros(2*fs,1)];
 
 % Define FDN
-N = 8;
+N = size(delay_times, 2);
 numFDNInput = 1;
 numFDNOutput = 1;
 inputGain = ones(N,numFDNInput) / sqrt(N);
 outputGain = ones(numFDNInput, N);
 direct = zeros(numFDNOutput,numFDNInput); % should be replaced with delay line, source -> listener
-fdnDelays = [809, 877, 937, 1049, 1151, 1249, 1373, 1499];
-% fdnDelays = transpose_row_2_col(delay_times); TODO: allow addition of scattering matrix delay approx
+fdnDelays = double(delay_times);
+
 numberOfStages = 2;
 sparsity = 2;
-maxShift = 30; 
+maxShift = 30;
 
 [feedbackMatrix, revFeedbackMatrix] = constructVelvetFeedbackMatrix(N,numberOfStages,sparsity);
 [feedbackMatrix, revFeedbackMatrix] = randomMatrixShift(maxShift, feedbackMatrix, revFeedbackMatrix);
@@ -26,12 +26,23 @@ maxShift = 30;
 % absorption filters including delay of scattering matrix
 [approximation, approximationError] = matrixDelayApproximation(feedbackMatrix);
 
-% use filter-bank instead? Early reflections time should be subtracted from rt60
-RT_NY = rt60 / 2; % highest frequnecy decay in seconds - set from sabine eq
-RT_DC = rt60 * 2; % lowest frequnecy decay in seconds - set from sabine eq
+assert(size(rt60_bands, 2) == size(rt60s, 2), 'RT60 bands and times arrays must be equal length.');
 
-% Use filterbank instead
-[absorption.b,absorption.a] = onePoleAbsorption(RT_DC, RT_NY, fdnDelays + approximation, fs);
+% Using filterbank
+filterOrder = 32;
+
+% Early reflections time should be subtracted from rt60
+T60frequency = transpose_row_2_col(rt60_bands);
+targetT60 = transpose_row_2_col(rt60s) * ones(1,N);
+
+% absorption = absorptionFilters(T60frequency, targetT60, filterOrder, fdnDelays + approximation, fs);
+% absorption
+% absorptionMatrix = polydiag( absorption );
+
+% zAbsorption = zFIR(matrixConvolution(feedbackMatrix, absorptionMatrix));
+
+% Using one-pole filter
+[absorption.b,absorption.a] = onePoleAbsorption(targetT60(1), targetT60(end), fdnDelays + approximation, fs);
 zAbsorption = zTF(absorption.b, absorption.a,'isDiagonal', true);
 
 % add transposed conditional

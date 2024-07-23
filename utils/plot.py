@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from math import floor
+import librosa
 
 def plot_signal(signal, title="", fs=44100, plot_time=False, xlim=None):
     plt.figure(figsize=(10, 4))
@@ -51,6 +52,16 @@ def linear_to_dB_norm(x):
     epsilon = 1e-20
     x_max = np.max(x)
     return 20 * np.log10((x + epsilon) / x_max)
+
+def spectrogram(y, sr, y_scale='linear', title="Spectrogram of RIR", xlim=None):    
+    fig = plt.figure(figsize=(10, 4))
+    plt.title(f'{title}') 
+    D = librosa.amplitude_to_db(np.abs(librosa.stft(y)), ref=np.max)
+    img = librosa.display.specshow(D, y_axis=y_scale, x_axis='time', sr=sr)
+    plt.ylabel(f"Frequency {y_scale} (Hz)")
+    plt.xlabel("Time (secs)")
+    plt.xlim(xlim)
+    fig.colorbar(img, format="%+2.f dB")
 
 def show_plots():
     plt.show()

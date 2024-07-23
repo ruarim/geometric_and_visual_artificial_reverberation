@@ -7,7 +7,7 @@ from config import RoomConfig
 class ImageSourceMethod:
     def __init__(self, room_config: RoomConfig, fs=44100):
         self.room_dims = room_config.ROOM_DIMS
-        self.absorption = room_config.WALL_ABSORPTION
+        self.absorption = room_config.WALL_MATERIALS
         self.source = room_config.SOURCE_LOC
         self.mic = room_config.MIC_LOC
         self.order = room_config.ER_ORDER
@@ -86,7 +86,6 @@ class ImageSourceMethod:
         
         if show:
             shoebox.plot()
-            plt.show()
         
         return image_sources, image_source_walls
 
