@@ -38,24 +38,25 @@ def plot_comparision(signals, title="", plot_time=False, fs=44100, xlim=None, y_
     plt.legend()
     plt.xlim(xlim)
 
-def plot_frequnecy_response(y, title):
-    X = linear_to_dB_norm(np.abs(np.fft.fft(y)))
-    half_X = floor(len(X)/2)
+def plot_frequnecy_response(y, fs, title="Frequency Spectrum (Db)"):
+    X = linear_to_dB(np.abs(np.fft.fft(y)))
     plt.figure(figsize=(10, 4))
     plt.title(title)
-    plt.plot(X[:half_X])
+    plt.plot(X[:floor(fs / 2)])
     plt.ylabel('Magnitude (Normalised dB)')
     plt.xlabel('Frequency')
 
-# normalised linear to dB conversion
-def linear_to_dB_norm(x):
+def linear_to_dB(x):
+    """
+    Normalised linear to dB conversion
+    """
     epsilon = 1e-20
     x_max = np.max(x)
     return 20 * np.log10((x + epsilon) / x_max)
 
-def spectrogram(y, sr, y_scale='linear', title="Spectrogram of RIR", xlim=None):    
+def plot_spectrogram(y, sr, y_scale='linear', title="Spectrogram of RIR", xlim=None):    
     fig = plt.figure(figsize=(10, 4))
-    plt.title(f'{title}') 
+    plt.title(f'{title}')
     D = librosa.amplitude_to_db(np.abs(librosa.stft(y)), ref=np.max)
     img = librosa.display.specshow(D, y_axis=y_scale, x_axis='time', sr=sr)
     plt.ylabel(f"Frequency {y_scale} (Hz)")

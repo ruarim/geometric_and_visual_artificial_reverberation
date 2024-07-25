@@ -41,7 +41,7 @@ class ImageSourceMethod:
 
         return shoebox
     
-    def render(self, order=0, norm=False):
+    def render(self, order=0, norm=False, plot_rt60=False):
         """
         Render the room impulse response of the given geometery and materials
         """
@@ -54,6 +54,11 @@ class ImageSourceMethod:
         shoebox.image_source_model()
         shoebox.compute_rir()
         
+        if plot_rt60:
+            plt.figure(figsize=(10, 4))
+            rt60_measured = shoebox.measure_rt60(plot=True)
+            print(rt60_measured)
+         
         # copy to local memory
         rir = shoebox.rir[0][0].copy()
         

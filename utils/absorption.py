@@ -1,15 +1,26 @@
 from matplotlib import pyplot as plt
 import numpy as np
+from math import floor
 
 from utils.file import read_json
 
-class Materials:
-    def __init__(self, walls_material: dict, data_dir: str, fs: float):
+class Absorption:
+    air_absorption_table = {
+        "10C_30-50%": [x * 1e-3 for x in [0.1, 0.2, 0.5, 1.1, 2.7, 9.4, 29.0]],
+        "10C_50-70%": [x * 1e-3 for x in [0.1, 0.2, 0.5, 0.8, 1.8, 5.9, 21.1]],
+        "10C_70-90%": [x * 1e-3 for x in [0.1, 0.2, 0.5, 0.7, 1.4, 4.4, 15.8]],
+        "20C_30-50%": [x * 1e-3 for x in [0.1, 0.3, 0.6, 1.0, 1.9, 5.8, 20.3]],
+        "20C_50-70%": [x * 1e-3 for x in [0.1, 0.3, 0.6, 1.0, 1.7, 4.1, 13.5]],
+        "20C_70-90%": [x * 1e-3 for x in [0.1, 0.3, 0.6, 1.1, 1.7, 3.5, 10.6]],
+        "center_freqs": [125, 250, 500, 1000, 2000, 4000, 8000],
+    }
+    
+    def __init__(self, walls_material: dict, data_dir: str, fs: float, air_absorption='20C_30-50%'):
         self.fs = fs
         self.materials: dict = read_json(data_dir)
         self.walls_material = walls_material
         self.freq_bands = np.array(self.materials["center_freqs"])
-        self.materials_coeffs = self._get_coefficients()
+        self.materials_coeffs = self._get_coefficients() + self.get_air_absorption(air_absorption)
         self.extrapolated_coeffs = self._extrapolate_dc_nyquist()
     
     def plots_coefficients(self):
@@ -38,18 +49,18 @@ class Materials:
         # add the frequency bands
         dc = 0
         nyquist = self.fs / 2
-        self.extrapolated_freq_bands = np.concatenate(([dc], self.freq_bands, [nyquist]))
+        self.extrapolated_freq_bands = np.concatenate(([dc], [floor(self.freq_bands[0]/2)], self.freq_bands, [nyquist]))
         
         # for each wall extrapolate coeffs to 0 Hz and Nyquist            
         return np.array([self._extrapolate_band(i) for i in range(len(self.materials_coeffs))])
        
     def _extrapolate_band(self, i):
         wall_coeffs = self.materials_coeffs[i]
-
+        
         max_value = wall_coeffs[-1]
         min_value = wall_coeffs[0]
         
-        return np.concatenate(([min_value], wall_coeffs, [max_value]))
+        return np.concatenate(([min_value],[min_value], wall_coeffs, [max_value]))
             
     def _get_coefficients(self):
         """
@@ -59,12 +70,11 @@ class Materials:
         list: A 2D list of coefficients associated with each material name
         """
         coeffs_property = "coeffs"
-        return np.array([np.array(self._find_value_by_key(self.materials, material, coeffs_property)) for _, material in self.walls_material.items()])    
+        return np.array([np.array(self._find_value_by_key(self.materials, material, coeffs_property)) for _, material in self.walls_material.items()])
     
-    @staticmethod
-    def _calc_air_absorption():
-        pass
-        
+    def get_air_absorption(self, temp_humidity: str):
+        return np.array(self.air_absorption_table[temp_humidity])   
+            
     @staticmethod
     def _find_value_by_key(d, target_key, property):
         """

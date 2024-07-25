@@ -12,22 +12,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from config import RoomConfig
 
-# from evaluation.rt60 import measure_rt60
-
-
-# def calc_T60(h, fs, compare, plot=False):
-#     """
-#     Calculate the T60 reverberation time of the SDN simulation in seconds.
-    
-#     Parameters:
-#     walls (array): Array of wall dimensions - [ length, width, height ]
-        
-#     Returns:
-#     T60 (float): Reverberation time in seconds.
-#     """
-#     t60 = measure_rt60(h, fs, plot=plot)
-#     return t60
-
 class ReverbTime:
     def __init__(self, room_config: RoomConfig):
         self.room_dims = room_config.ROOM_DIMS

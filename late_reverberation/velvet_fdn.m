@@ -14,7 +14,7 @@ numFDNOutput = 1;
 inputGain = ones(N,numFDNInput) / sqrt(N);
 outputGain = ones(numFDNInput, N);
 direct = zeros(numFDNOutput,numFDNInput); % should be replaced with delay line, source -> listener
-fdnDelays = double(delay_times);
+delays = double(delay_times);
 
 numberOfStages = 2;
 sparsity = 2;
@@ -35,20 +35,26 @@ filterOrder = 32;
 T60frequency = transpose_row_2_col(rt60_bands);
 targetT60 = transpose_row_2_col(rt60s) * ones(1,N);
 
-% absorption = absorptionFilters(T60frequency, targetT60, filterOrder, fdnDelays + approximation, fs);
-% absorption
+% absorption = absorptionFilters(T60frequency, targetT60, filterOrder, delays + approximation, fs);
 % absorptionMatrix = polydiag( absorption );
 
-% zAbsorption = zFIR(matrixConvolution(feedbackMatrix, absorptionMatrix));
+% absorptionFeedbackMatrix = zFIR(matrixConvolution(feedbackMatrix, absorptionMatrix));
+
+% filterCoefficients = absorptionFilters(T60frequency, targetT60, filterOrder, delays, fs).';
+% [T60,T60_f] = absorption2T60( filterCoefficients, delays, 2^10, fs );
+
+% % using graphical eq
+% zAbsorption = zSOS(absorptionGEQ(rt60s, delays + approximation, fs),'isDiagonal',true);
 
 % Using one-pole filter
-[absorption.b,absorption.a] = onePoleAbsorption(targetT60(1), targetT60(end), fdnDelays + approximation, fs);
+[absorption.b,absorption.a] = onePoleAbsorption(targetT60(1), targetT60(end), delays + approximation, fs);
 zAbsorption = zTF(absorption.b, absorption.a,'isDiagonal', true);
 
-% add transposed conditional
+% TODO: add transposed conditional
 
-output_transposed = processTransposedFDN(x, fdnDelays, feedbackMatrix, inputGain, outputGain, direct, 'absorptionFilters', zAbsorption);
-% lossless_output_transposed = processTransposedFDN(x, fdnDelays, feedbackMatrix, inputGain, outputGain, direct);
+% output_transposed = processTransposedFDN(x, delays, absorptionFeedbackMatrix, inputGain, outputGain, direct);
+output_transposed = processTransposedFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct, 'absorptionFilters', zAbsorption);
+% lossless_output_transposed = processTransposedFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct);
 % output_transposed_norm = output_transposed / max(x);
 
 rir = output_transposed;
