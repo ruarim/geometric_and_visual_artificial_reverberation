@@ -54,7 +54,7 @@ def linear_to_dB(x):
     x_max = np.max(x)
     return 20 * np.log10((x + epsilon) / x_max)
 
-def plot_spectrogram(y, sr, y_scale='linear', title="Spectrogram of RIR", xlim=None):    
+def plot_spectrogram(y, sr, y_scale='linear', title="Spectrogram", xlim=None):    
     fig = plt.figure(figsize=(10, 4))
     plt.title(f'{title}')
     D = librosa.amplitude_to_db(np.abs(librosa.stft(y)), ref=np.max)

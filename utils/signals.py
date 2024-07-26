@@ -29,7 +29,7 @@ def file(data_dir, file_name):
     return data, fs
 
 # return fs depenant on signal type 
-def signal(choice, signal_length, fs=44100, burst_secs=0.1, gain=1.0, data_dir="", file_name="", channels=1):
+def signal(choice, signal_length=44100, fs=44100, burst_secs=0.1, gain=1.0, data_dir="", file_name="", channels=1):
     if choice == "unit": 
         signal = unit_impulse(signal_length, gain)
     if choice == "noise": 
