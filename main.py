@@ -24,8 +24,6 @@ output_config = OutputConfig()
 
 # get the absoprtion coefficients at frequnecy bands for each wall
 absorption = Absorption(room_config.WALL_MATERIALS, room_config.MATERIALS_DIR, simulation_config.FS)
-print(absorption.extrapolated_freq_bands)
-print(absorption.extrapolated_coeffs)
 
 # find image sources up to Nth order 
 ism = ImageSourceMethod(room_config, fs=simulation_config.FS) # pass specific config values instead
@@ -34,6 +32,9 @@ image_source_coords, image_source_walls = ism.get_source_coords(show=False)
 image_source_points = [Point3D(image_source) for image_source in image_source_coords]
 source_point = Point3D(room_config.SOURCE_LOC)
 mic_point = Point3D(room_config.MIC_LOC)
+
+absorption_coeffs = absorption.extrapolated_coefficients
+absorption_bands = absorption.extrapolated_freq_bands
 
 # tapped delay line or render ism and convolve with input
 er = EarlyReflections(
@@ -44,11 +45,13 @@ er = EarlyReflections(
         simulation_config,
         room_config,
         ism_rir=ism_er_rir,
+        wall_center_freqs=absorption.bands,
+        material_absorption=absorption.coefficients_dict
 )
 
 reverb_time = ReverbTime(room_config)
 rt60_sabine, rt60_eyring = reverb_time.rt60s()
-rt60_sabine_bands, rt60_eyring_bands = reverb_time.rt60s_bands(absorption.extrapolated_coeffs, absorption.extrapolated_freq_bands, plot=True)
+rt60_sabine_bands, rt60_eyring_bands = reverb_time.rt60s_bands(absorption_coeffs, absorption_bands, plot=True)
 
 print(rt60_sabine, rt60_eyring)
 print(rt60_sabine_bands, rt60_eyring_bands)
@@ -65,6 +68,22 @@ input_signal, fs = signal(
         file_name=test_config.FILE_NAME,
 )
 
+# simulate room with SDN
+print("SDN: processing samples...")
+
+sdn_rir = run_sdn_simulation(
+        input_signal,  
+        room_config.ROOM_DIMS, 
+        room_config.SOURCE_LOC, 
+        room_config.MIC_LOC,
+        er_order=1,
+        fs=simulation_config.FS,
+        absorption_coefficients=absorption_coeffs,
+        absorption_freqs=absorption_bands,
+        flat_absorption=1,
+        direct_path=True
+)
+
 ism_fdn_output_signal = np.zeros_like(input_signal)
 
 print('TDL: processing early reflections')
@@ -76,7 +95,7 @@ matlab_eng = init_matlab_eng()
 
 print('FDN: processing late reverberation')
 # apply FDN reverberation to output of early reflection stage
-lr_signal = np.array(matlab_eng.velvet_fdn(simulation_config.FS, er_signal_tdl, fdn_delay_times, rt60_eyring_bands, absorption.extrapolated_freq_bands))
+lr_signal = np.array(matlab_eng.velvet_fdn_one_pole(simulation_config.FS, er_signal_tdl, fdn_delay_times, rt60_eyring_bands, absorption_bands))
 
 # apply in parralel
 # input should be delayed by shortest image source
@@ -88,26 +107,13 @@ matlab_eng.quit()
 # mono 
 ism_fdn_rir = np.array([er + lr[0] for er, lr in zip(er_signal_tdl, lr_signal)])
 
-# simulate room with SDN
-print("SDN: processing samples...")
-sdn_rir = run_sdn_simulation(
-        input_signal,  
-        room_config.ROOM_DIMS, 
-        room_config.SOURCE_LOC, 
-        room_config.MIC_LOC, 
-        fs=simulation_config.FS,
-        flat_absorption=0.1,
-        er_order=1,
-        direct_path=True
-)
-
 # render pyroomacoustics rir for comparison
 ism_order = 100
-ism_rir = ism.render(order=ism_order)
+ism_rir = ism.render(order=ism_order, plot_rt60=True)
 ism_full_rir_norm = ism_rir / np.max(ism_rir)
 
 config_str = f'ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}'
-
+        
 if output_config.OUTPUT_TO_FILE:
         # output early reflections RIR
         write_array_to_wav(test_config.ER_RIR_DIR, test_config.SIGNAL_TYPE, er_signal_tdl, simulation_config.FS)
@@ -118,10 +124,12 @@ if output_config.PLOT:
         
         # plot
         compare_data = {
+                "Full ISM": ism_full_rir_norm,
+                "SDN": sdn_rir,
                 # "Convolution": er_signal_convolve,
                 "Velvet FDN": lr_signal,
                 'Tapped Delay Line': er_signal_tdl,
-                "Full ISM": ism_full_rir_norm,
+                
         }
 
         xlim = [0, 500]
@@ -136,8 +144,6 @@ if output_config.PLOT:
                 y_offset=0.0
         )
         
-        # plot_signal(sdn_rir, plot_time=True)
-        
         spec_xlim=[0,6]
         plot_spectrogram(ism_fdn_rir, simulation_config.FS, xlim=spec_xlim, title="Spectrogram of ISM/Velvet FDN RIR")
         plot_spectrogram(ism_rir, simulation_config.FS, xlim=spec_xlim, title="Spectrogram of ISM RIR")
@@ -145,7 +151,7 @@ if output_config.PLOT:
         
         plt.figure(figsize=(10, 4))
         plt.title(f'ISM RT60, Order: {ism_order}')
-        measure_rt60(ism_fdn_rir, fs=simulation_config.FS, plot=True, rt60_tgt=rt60_eyring_bands[floor(len(rt60_eyring_bands) / 2)])
+        measure_rt60(ism_rir, fs=simulation_config.FS, plot=True, rt60_tgt=rt60_eyring_bands[floor(len(rt60_eyring_bands) / 2)])
         
         plt.figure(figsize=(10, 4))
         plt.title('ISM/FDN RT60')

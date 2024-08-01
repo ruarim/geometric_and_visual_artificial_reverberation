@@ -1,6 +1,7 @@
 import pyroomacoustics as pra
 import matplotlib.pyplot as plt
 import numpy as np
+from pyroomacoustics.experimental.rt60 import measure_rt60
 
 from config import RoomConfig
 
@@ -41,7 +42,7 @@ class ImageSourceMethod:
 
         return shoebox
     
-    def render(self, order=0, norm=False, plot_rt60=False):
+    def render(self, order=0, norm=False, plot_rt60=False, rt60_theory_type='sabine'):
         """
         Render the room impulse response of the given geometery and materials
         """
@@ -53,14 +54,19 @@ class ImageSourceMethod:
         # run image source method and render rir
         shoebox.image_source_model()
         shoebox.compute_rir()
-        
-        if plot_rt60:
-            plt.figure(figsize=(10, 4))
-            rt60_measured = shoebox.measure_rt60(plot=True)
-            print(rt60_measured)
          
         # copy to local memory
         rir = shoebox.rir[0][0].copy()
+        
+        if plot_rt60:
+            rt60_theory = shoebox.rt60_theory(formula=rt60_theory_type)
+            
+            plt.figure(figsize=(10, 4))
+            
+            rt60_measured = measure_rt60(rir, fs=self.fs, plot=True, rt60_tgt=rt60_theory)
+            
+            print(f'RT60 Measured: {rt60_measured}')
+            print(f'RT60 Theory: {rt60_theory}')
         
         if(norm): rir = rir / np.max(rir)
         

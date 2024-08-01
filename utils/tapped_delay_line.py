@@ -1,16 +1,19 @@
 import numpy as np
 from utils.fractional_delay import fractional_delay
+from scipy.signal import lfilter
 
 class TappedDelayLine:
-    def __init__(self, delays, gains, fs, frac_filter_N=81):
+    def __init__(self, delays, gains, filter_coeffs, fs, frac_filter_N=81, use_filter=True):
         self.delays = delays  # delay times in seconds
         self.gains = gains  # gain values for each delay
         self.fs = fs
+        self.filter_coeffs = filter_coeffs
+        self.use_filter = use_filter
         self.frac_filter_N = frac_filter_N
         self.group_delay = (frac_filter_N - 1) // 2
 
     def process(self, input_signal, output_signal):        
-        for delay, gain in zip(self.delays, self.gains):
+        for delay, gain, filter_coeffs in zip(self.delays, self.gains, self.filter_coeffs):
             delay_int = int(delay * self.fs)
             delay_frac = (self.fs * delay) - delay_int
             # apply integer delay
@@ -23,6 +26,7 @@ class TappedDelayLine:
                 (np.zeros(self.group_delay), fractional_delayed_signal)
             )[:len(output_signal)]
             
-            output_signal += (gain * corrected_signal) # pass alpha array
+            if(self.use_filter): corrected_signal = lfilter(filter_coeffs, [1], corrected_signal)
+            output_signal += (gain * corrected_signal)
             
         return output_signal

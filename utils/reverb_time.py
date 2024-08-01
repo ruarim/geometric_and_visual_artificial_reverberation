@@ -17,7 +17,7 @@ class ReverbTime:
         self.room_dims = room_config.ROOM_DIMS
         self.absorption_flat = np.array([room_config.WALL_ABSORPTION[wall] for wall in room_config.WALL_ABSORPTION])
         self.V = self.calc_V(self.room_dims)
-        self.A = self.calc_A(self.room_dims)
+        self.S = self.calc_A(self.room_dims)
     
     @staticmethod
     def calc_V(dims):
@@ -49,10 +49,13 @@ class ReverbTime:
         if len(dims) != 3 or any(dim <= 0 for dim in dims):
             raise ValueError("Invalid wall dimensions provided.")
         
-        front_back = dims[0] * dims[2]
-        side = dims[1] * dims[2]
+        L, W, H =  dims
         
-        return np.array([front_back, front_back, side, side, side, side])
+        north_south = L * H
+        east_west = W * H
+        floor_ceiling = L * W
+        
+        return np.array([north_south, north_south, east_west, east_west, floor_ceiling, floor_ceiling])
 
     @staticmethod
     def sabine_rt60(V: float, A, alpha):
@@ -97,15 +100,24 @@ class ReverbTime:
         
         return (scaling_factor * V) / (-total_area * np.log(1 - total_absorption / total_area)) # is "-total_area" correct
 
+    def calc_A_w(self):
+        L, W, H =  self.room_dims
+        
+        north_south = L * H
+        east_west = W * H
+        floor_ceiling = L * W 
+        return np.array([north_south, north_south, east_west, east_west, floor_ceiling, floor_ceiling])
+           
     def rt60s(self):        
-        sabine = self.sabine_rt60(self.V, self.A, self.absorption_flat)
-        eyring = self.eyring_rt60(self.V, self.A, self.absorption_flat)
+        sabine = self.sabine_rt60(self.V, self.S, self.absorption_flat)
+        eyring = self.eyring_rt60(self.V, self.S, self.absorption_flat)
 
         return sabine, eyring
     
     def rt60s_bands(self, alphas: list[list], bands: list[float], plot=False):
-        sabine_bands = np.array([self.sabine_rt60(self.V, self.A, alphas[:, i]) for i in range(len(alphas[0]))])
-        eyring_bands = np.array([self.eyring_rt60(self.V, self.A, alphas[:, i]) for i in range(len(alphas[0]))])
+        # wall surface areas
+        sabine_bands = np.array([self.sabine_rt60(self.V, self.S, alphas[:, i]) for i in range(len(alphas[0]))])
+        eyring_bands = np.array([self.eyring_rt60(self.V, self.S, alphas[:, i]) for i in range(len(alphas[0]))])
         
         rt60s = {
             "Sabine": sabine_bands,

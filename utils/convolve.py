@@ -1,14 +1,14 @@
 import numpy as np
 from scipy.fft import fft, ifft
 
-def fft_convolution(input_signal, rir, output_signal):
+def fft_convolution(x, ir, y, norm=False):
     # Find the next power of two for zero-padding (for efficient FFT computation)
-    n = len(input_signal) + len(rir) - 1
+    n = len(x) + len(ir) - 1
     N = 2 ** np.ceil(np.log2(n)).astype(int)
 
     # Compute the FFT of both signals
-    fft_audio = fft(input_signal, N)
-    fft_ir = fft(rir, N)
+    fft_audio = fft(x, N)
+    fft_ir = fft(ir, N)
 
     # Perform the convolution in the frequency domain
     fft_convolution = fft_audio * fft_ir
@@ -20,7 +20,7 @@ def fft_convolution(input_signal, rir, output_signal):
     convolved_signal = np.real(convolved_signal)
 
     # Normalize the convolved signal to prevent clippin
-    # convolved_signal = convolved_signal / np.max(np.abs(convolved_signal))
+    if norm: convolved_signal = convolved_signal / np.max(np.abs(convolved_signal))
     
     # output signal in the correct shape
-    return convolved_signal
+    return convolved_signal[:len(y)]

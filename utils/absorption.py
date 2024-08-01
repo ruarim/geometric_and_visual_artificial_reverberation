@@ -16,13 +16,15 @@ class Absorption:
     }
     
     def __init__(self, walls_material: dict, data_dir: str, fs: float, air_absorption='20C_30-50%'):
+        self.air_absorption = air_absorption
         self.fs = fs
         self.materials: dict = read_json(data_dir)
         self.walls_material = walls_material
         self.freq_bands = np.array(self.materials["center_freqs"])
-        self.materials_coeffs = self._get_coefficients() + self.get_air_absorption(air_absorption)
-        self.extrapolated_coeffs = self._extrapolate_dc_nyquist()
-    
+        self.coefficients = self._get_coefficients()
+        self.coefficients_dict = self._get_coefficients_dict()
+        self.extrapolated_coefficients = self._extrapolate_coefficients()
+        
     def plots_coefficients(self):
         """
         Plot the coefficents at frequnecy bands for each wall
@@ -35,32 +37,31 @@ class Absorption:
         plt.ylabel('Absorption Coefficient')
         plt.title('Plot of Material Absorption Coefficients vs. Bands')
         
-        for coefficients, wall in zip(self.materials_coeffs, self.walls_material):
+        for coefficients, wall in zip(self.coefficients, self.walls_material):
             plt.plot(self.freq_bands, coefficients, label=f"{wall} - {self.walls_material[wall]}")
         
         plt.legend()
         
-    def _extrapolate_dc_nyquist(self):
+    def _extrapolate_coefficients(self):
         """
-        For now this is a relativly crude approximation.
-        
-        Add coefficients down to 0 Hz and up to Nyquist using same value as the lowest/largest frequency coefficents.
+        Extrapolate maximum and minimum absorption values
         """
         # add the frequency bands
-        dc = 0
-        nyquist = self.fs / 2
-        self.extrapolated_freq_bands = np.concatenate(([dc], [floor(self.freq_bands[0]/2)], self.freq_bands, [nyquist]))
+        # dc = 0
+        # nyquist = self.fs / 2
+        max_band = self.freq_bands[-1]
+        min_band = self.freq_bands[0]
+        self.extrapolated_freq_bands = np.concatenate(([floor(min_band / 2)], self.freq_bands, [max_band * 2]))
         
         # for each wall extrapolate coeffs to 0 Hz and Nyquist            
-        return np.array([self._extrapolate_band(i) for i in range(len(self.materials_coeffs))])
+        return np.array([self._extrapolate_coeffs(i) for i in range(len(self.coefficients))])
        
-    def _extrapolate_band(self, i):
-        wall_coeffs = self.materials_coeffs[i]
+    def _extrapolate_coeffs(self, i):
+        wall_coeffs = self.coefficients[i]
+        max_band = wall_coeffs[-1]
+        min_band = wall_coeffs[0]
         
-        max_value = wall_coeffs[-1]
-        min_value = wall_coeffs[0]
-        
-        return np.concatenate(([min_value],[min_value], wall_coeffs, [max_value]))
+        return np.concatenate(([min_band], wall_coeffs, [max_band]))
             
     def _get_coefficients(self):
         """
@@ -70,9 +71,23 @@ class Absorption:
         list: A 2D list of coefficients associated with each material name
         """
         coeffs_property = "coeffs"
-        return np.array([np.array(self._find_value_by_key(self.materials, material, coeffs_property)) for _, material in self.walls_material.items()])
+        return np.array([np.array(self._find_value_by_key(self.materials, material, coeffs_property) + + self._get_air_absorption(self.air_absorption)) for _, material in self.walls_material.items()])
     
-    def get_air_absorption(self, temp_humidity: str):
+    def _get_coefficients_dict(self):
+        """
+        Given a list of material names get the corresponding values from the materials data.
+        
+        Returns:
+        dict: A dict with (key) wall name and (value) coefficients associated with each material name
+        """
+        coeffs_property = "coeffs"
+        coeffs_dict = {}
+        for wall_name, material in self.walls_material.items():
+            coeffs_dict[wall_name] = np.array(self._find_value_by_key(self.materials, material, coeffs_property)) + self._get_air_absorption(self.air_absorption)
+                
+        return coeffs_dict
+
+    def _get_air_absorption(self, temp_humidity: str):
         return np.array(self.air_absorption_table[temp_humidity])   
             
     @staticmethod

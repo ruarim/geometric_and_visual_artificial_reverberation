@@ -2,12 +2,12 @@ from .source import Source
 from .mic import Mic
 from .propigation_line import PropigationLine
 from .scattering_junction import ScatteringJunction
+from utils.filters import fir_type_1, fir_type_2
 
 
 class Network:
-    def __init__(self, early_reflections, source_location, mic_location, wall_absorption, fs, enable_direct_path):
+    def __init__(self, early_reflections, source_location, mic_location,fs, band_absorption, center_freqs, flat_absorption,  enable_direct_path):
         self.M = len(early_reflections)
-        
         self.source = Source(source_location)
         self.mic = Mic(mic_location)
         
@@ -19,14 +19,18 @@ class Network:
         self.mic.add_direct_path(self.direct_path)  
         self.junctions: list[ScatteringJunction] = []
         
+        nyquist = fs / 2
+                    
         # for each refelection create a scattering junction
         for i in range(self.M):
             junction_loc = early_reflections[i]
-            junction = ScatteringJunction(junction_loc, self.source, self.mic, alpha=wall_absorption)
+            gains = 1 - band_absorption[i]
+            _, junction_filter_min_coeffs = fir_type_1(center_freqs, gains, nyquist) # currently only type_1 filter works
+            junction = ScatteringJunction(junction_loc, self.source, self.mic, alpha=flat_absorption, filter_coeffs=junction_filter_min_coeffs)
             self.junctions.append(junction)
         
         # connect the scattering junctions with waveguides (bidirectional delay lines)
-        for i in range(self.M):   
+        for i in range(self.M):
             # connect source to junction
             source_line = PropigationLine(start=self.source, end=self.junctions[i], fs=fs)
             source_attenuation = 1 / source_line.distance
