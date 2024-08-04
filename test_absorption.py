@@ -20,17 +20,22 @@ absorption.plots_coefficients()
 
 reverb_time = ReverbTime(room_config)
 rt60_sabine, rt60_eyring = reverb_time.rt60s()
-rt60_sabine_bands, rt60_eyring_bands = reverb_time.rt60s_bands(absorption.extrapolated_coefficients, absorption.extrapolated_freq_bands, plot=True)
+rt60_sabine_bands, rt60_eyring_bands = reverb_time.rt60s_bands(absorption.coefficients, absorption.freq_bands, plot=True)
 
 # frequency bands and attenuation values
-freqs = absorption.extrapolated_freq_bands
-coefficients = absorption.extrapolated_coefficients[0]
+freqs = absorption.freq_bands
+wall_coefficients = absorption.coefficients[0]  # test with one wall
+wall_air_coefficients = absorption.coefficients[0] + absorption.air_absorption # test with one wall and air
+ 
 
-# get alpha from absorption coeffs
-alphas = 1 - coefficients
-
+# test noise burst
 x, fs = signal('noise', burst_secs=0.5)
 
-plot_fir(x, freqs, alphas, fs, db=True, y_scale='log')
+# get alpha from absorption coeffs
+wall_alphas = 1 - wall_coefficients
+plot_fir(x, freqs, wall_alphas, fs, db=True, title='Wall absorption')
+
+wall_air_alphas = 1 - wall_air_coefficients
+plot_fir(x, freqs, wall_air_alphas, fs, db=True, title='Wall and air absorption')
 
 plt.show()

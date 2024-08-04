@@ -19,8 +19,11 @@ output_config = OutputConfig()
 
 # get the absoprtion coefficients at frequnecy bands for each wall
 absorption = Absorption(room_config.WALL_MATERIALS, room_config.MATERIALS_DIR, simulation_config.FS)
+absorption_coeffs = absorption.coefficients + absorption.air_absorption
+absorption_bands = absorption.freq_bands
+
 reverb_time = ReverbTime(room_config)
-rt60_sabine, rt60_eyring = reverb_time.rt60s_bands(absorption.coefficients, absorption.freq_bands, plot=True)
+rt60_sabine, rt60_eyring = reverb_time.rt60s_bands(absorption_coeffs, absorption_bands, plot=True)
 
 print(f"RT60 Sabine: {rt60_sabine}")
 print(f"RT60 Eyring: {rt60_eyring}")
@@ -43,8 +46,8 @@ sdn_rir = run_sdn_simulation(
         room_config.MIC_LOC,
         er_order=1,
         fs=simulation_config.FS,
-        absorption_coefficients=absorption.coefficients,
-        absorption_freqs=absorption.freq_bands,
+        absorption_coefficients=absorption_coeffs,
+        absorption_freqs=absorption_bands,
         flat_absorption=1,
         direct_path=True
 )

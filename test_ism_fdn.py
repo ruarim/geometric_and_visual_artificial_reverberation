@@ -15,7 +15,7 @@ from utils.absorption import Absorption
 from utils.filters import tone_correction
 from utils.room import calc_mean_free_path
 from utils.geometry import distance_to_delay
-from utils.primes import find_log_mutual_primes, find_closest_primes
+from utils.primes import find_log_mutual_primes, find_closest_primes, is_mutually_prime
 
 # config dataclasses
 simulation_config = SimulationConfig()
@@ -36,8 +36,7 @@ image_source_points = [Point3D(image_source) for image_source in image_source_co
 source_point = Point3D(room_config.SOURCE_LOC)
 mic_point = Point3D(room_config.MIC_LOC)
 
-
-absorption_coeffs = absorption.coefficients
+absorption_coeffs = absorption.coefficients + absorption.air_absorption
 absorption_bands = absorption.freq_bands
 absorption.plots_coefficients()
 
@@ -86,7 +85,8 @@ print(f'Mean Free Path Delay: {mean_free_path_delay}')
 # delay from geometry
 fdn_delay_times = np.array([int(delay_sec * simulation_config.FS) for delay_sec in set(er.delay_times)])
 fdn_delay_times = find_closest_primes(fdn_delay_times)
-print(f'FDN Delays {fdn_delay_times}')
+print(f'FDN Delays: {fdn_delay_times}')
+print(f'Delays mutually prime: {is_mutually_prime(fdn_delay_times)}')
 
 # run acoustic simulation
 input_signal, fs = signal(
@@ -106,8 +106,8 @@ er_signal_convolve, direct_sound = er.process(input_signal, ism_fdn_output_signa
 # start matlab process
 matlab_eng = init_matlab_eng()
 
-print('FDN: processing late reverberation')
 # apply FDN reverberation to output of early reflection stage
+print('FDN: processing late reverberation')
 lr_signal_one_pole = np.array(matlab_eng.velvet_fdn_one_pole(simulation_config.FS, er_signal_tdl, fdn_delay_times, rt60_sabine, absorption_bands, tranistion_frequency))
 lr_signal_fir      = np.array(matlab_eng.velvet_fdn_fir(simulation_config.FS, er_signal_tdl, fdn_delay_times, rt60_sabine, absorption_bands))
 
@@ -128,10 +128,10 @@ lr_signal_one_pole_tonal_correction = tone_correction(
         taps=filter_taps, 
         plot=True)
 
-# combine early and late reflections to create full RIRs
-ism_fdn_one_pole_rir = er_signal_tdl + lr_signal_one_pole + direct_sound
-ism_fdn_one_pole_tonal_correction_rir = er_signal_tdl + lr_signal_one_pole_tonal_correction + direct_sound
-ism_fdn_fir_rir = er_signal_tdl + lr_signal_fir + direct_sound
+# combine direct sound, early and late reflections to create full RIRs
+ism_fdn_one_pole_rir                  = direct_sound + er_signal_tdl + lr_signal_one_pole
+ism_fdn_one_pole_tonal_correction_rir = direct_sound + er_signal_tdl + lr_signal_one_pole_tonal_correction
+ism_fdn_fir_rir                       = direct_sound + er_signal_tdl + lr_signal_fir
 
 config_str = f'ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}'
 
@@ -154,7 +154,7 @@ compare_data = {
         'FDN FIR': lr_signal_fir,
 }
 
-xlim = [0, 1]
+xlim = [0, 2]
 
 # time plots comparison
 plot_comparision(

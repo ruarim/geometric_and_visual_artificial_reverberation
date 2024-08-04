@@ -25,7 +25,7 @@ class RoomConfig:
         "south": "hard_surface",
         "east": "hard_surface",
         "west": "hard_surface",
-        "floor": "carpet_cotton",
+        "floor": "linoleum_on_concrete",
         "ceiling": "hard_surface",
     })
     MATERIALS_DIR: str = "_data/vorlander_auralization/materials.json"
