@@ -1,14 +1,15 @@
 import numpy as np
 
 from utils.point3D import Point3D
-from utils.tapped_delay_line import TappedDelayLine
+from utils.delay import TappedDelayLine
+from utils.delay import delay_array
 from utils.geometry import euclid_dist, distance_to_delay
 from utils.convolve import fft_convolution
 from utils.filters import fir_type_1, fir_type_2
 from config import SimulationConfig, RoomConfig
 
 class EarlyReflections:
-    def __init__(self, source: Point3D, mic: Point3D, image_sources: list[Point3D], image_source_walls: list[str], sim_config: SimulationConfig, room_config: RoomConfig, ism_rir, wall_center_freqs, material_absorption, use_filter=True, fir_type="I"):
+    def __init__(self, source: Point3D, mic: Point3D, image_sources: list[Point3D], image_source_walls: list[str], sim_config: SimulationConfig, room_config: RoomConfig, ism_rir, wall_center_freqs, material_absorption, material_filter=True, fir_type="I"):
         self.fs = sim_config.FS
         self.c = sim_config.SPEED_OF_SOUND
         self.source = source
@@ -24,21 +25,21 @@ class EarlyReflections:
         self.ism_rir = ism_rir
         
         # get delay times from 3D points
-        self.delay_times = self._make_delay_times()
+        self.delay_times = self._make_early_reflection_delay_times()
         
         # attenuation over distance (1/r law)
         distance_attenuation = self._make_distance_attenuation()
         wall_attenuation_flat = self._make_wall_attenuation_flat()
         
-        if not use_filter: self.attenuation = distance_attenuation + wall_attenuation_flat
+        if not material_filter: self.attenuation = distance_attenuation + wall_attenuation_flat
         
         self.attenuation = distance_attenuation
         self.wall_filter_coeffs = self._make_wall_filters()
         
-        self.tapped_delay_line = TappedDelayLine(self.delay_times, self.attenuation, self.wall_filter_coeffs, self.fs, use_filter=use_filter) # inject tdl instead
+        self.direct_delay = self._point_to_delay_time(self.mic, self.source)
         
-        # self.scattering_network = ScatteringNetwork()
-    
+        self.tapped_delay_line = TappedDelayLine(self.delay_times, self.attenuation, self.wall_filter_coeffs, self.fs, use_filter=material_filter)
+            
     # TODO also return direct sound in a seperate array
     def process(self, input_signal, output_signal, type: str):
         """
@@ -46,13 +47,15 @@ class EarlyReflections:
         
         Returns: delayed and attenuated samples (numpy array)
         """
-        if type == 'tdl': return self.tapped_delay_line.process(input_signal, output_signal)
-        if type == 'convolve': return fft_convolution(input_signal, self.ism_rir, output_signal)
-        if type == 'scattering': print('scattering')
-        
-        # apply frequnecy dependant decay filter bank - only for tapped delay line
-        
-    def _make_delay_times(self):
+        direct = delay_array(input_signal, self.direct_delay, self.fs)
+        if type == 'tdl': 
+            er = self.tapped_delay_line.process(input_signal, output_signal)
+            return er, direct
+        if type == 'convolve': 
+            er = fft_convolution(input_signal, self.ism_rir, output_signal)
+            return er, direct
+                
+    def _make_early_reflection_delay_times(self):
         return [self._point_to_delay_time(self.mic, image_source) for image_source in self.image_sources]
     
     def _make_distance_attenuation(self):
@@ -70,6 +73,7 @@ class EarlyReflections:
         if fir_type == "I": fir, fir_min = fir_type_1(freqs, 1 - np.array(gains), nyquist)
         if fir_type == "II": fir, fir_min = fir_type_2(freqs, 1 - np.array(gains), nyquist)
         return fir_min
+    
     def _point_to_delay_time(self, mic, point):
         distance = euclid_dist(point, mic)
         delay = distance_to_delay(distance, self.c)

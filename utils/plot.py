@@ -8,7 +8,7 @@ def plot_signal(signal, title="", fs=44100, plot_time=False, xlim=None):
     plt.title(title)
     
     if plot_time: 
-        time_vec = np.arange(len(signal)) / (fs / 1000)
+        time_vec = np.arange(len(signal)) / (fs)
         plt.plot(time_vec, signal)
         plt.xlabel('Time(ms)')
     else:
@@ -26,7 +26,7 @@ def plot_comparision(signals, title="", plot_time=False, fs=44100, xlim=None, y_
         signal = signals[key]
         signal += y_offset * count
         if plot_time:
-            time_vec = np.arange(len(signal)) / (fs / 1000)
+            time_vec = np.arange(len(signal)) / (fs)
             plt.plot(time_vec, signal, label=key)
             plt.xlabel('Time(ms)')
         else: 
@@ -73,7 +73,7 @@ def plot_room(room_dimensions, source_pos, mic_pos, reflections=[]):
     ax = fig.add_subplot(111, projection='3d')
 
     # Room dimensions
-    room_x, room_z, room_y = room_dimensions
+    room_x, room_y, room_z = room_dimensions
     
     # Plotting the room
     # Floor

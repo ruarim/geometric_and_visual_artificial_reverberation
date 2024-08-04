@@ -1,10 +1,10 @@
 % Velvet FDN where the stucture is inverted such that the output of
 % taken from the mixing matrix instead of the delay lines.
-function [rir] = velvet_fdn_one_pole(fs, er_signal_tdl, delay_times, rt60s, rt60_bands)
+function [rir] = velvet_fdn_one_pole(fs, er_signal, delay_times, rt60s, rt60_bands, crossover_frequency)
 fs = double(fs);
 
 % input signal
-x = transpose_row_2_col(er_signal_tdl);
+x = transpose_row_2_col(er_signal);
 x = x(:,1);
 
 % Define FDN
@@ -13,7 +13,7 @@ numFDNInput = 1;
 numFDNOutput = 1;
 inputGain = ones(N,numFDNInput) / sqrt(N);
 outputGain = ones(numFDNInput, N);
-direct = zeros(numFDNOutput,numFDNInput); % should be replaced with delay line, source -> listener
+direct = zeros(numFDNOutput,numFDNInput);
 delays = double(delay_times);
 
 numberOfStages = 2;
@@ -28,13 +28,17 @@ maxShift = 30;
 
 assert(size(rt60_bands, 2) == size(rt60s, 2), 'RT60 bands and times arrays must be equal length.');
 
-targetT60 = transpose_row_2_col(rt60s) * ones(1,N);
+targetT60 = transpose_row_2_col(rt60s);
 
-% using graphical eq
-% zAbsorption = zSOS(absorptionGEQ(rt60s, delays + approximation, fs),'isDiagonal',true);
+switch 'firstOrder'
+    case 'onePole'
+        % Using one-pole filter
+        [absorption.b,absorption.a] = onePoleAbsorption(targetT60(1), targetT60(end), delays + approximation, fs);
+    case 'firstOrder'
+        [absorption.b,absorption.a] = firstOrderAbsorption(targetT60(1), targetT60(end), crossover_frequency, delays + approximation, fs);
+end
 
-% Using one-pole filter
-[absorption.b,absorption.a] = onePoleAbsorption(targetT60(1), targetT60(end), delays + approximation, fs);
+
 zAbsorption = zTF(absorption.b, absorption.a,'isDiagonal', true);
 
 output_transposed = processTransposedFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct, 'absorptionFilters', zAbsorption);
@@ -42,6 +46,4 @@ output_transposed = processTransposedFDN(x, delays, feedbackMatrix, inputGain, o
 
 rir = output_transposed;
 
-%% Test: script finished
-assert(1 == 1);
 end

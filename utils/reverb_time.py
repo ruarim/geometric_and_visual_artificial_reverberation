@@ -10,6 +10,7 @@
 
 import numpy as np
 from matplotlib import pyplot as plt
+from math import sqrt
 from config import RoomConfig
 
 class ReverbTime:
@@ -145,3 +146,7 @@ class ReverbTime:
             plt.plot(bands, rt60s[rt60_type], label=rt60_type)
         
         plt.legend()
+       
+    # https://docs.treble.tech/Transitionfrequency 
+    def transition_frequency(self, rt60, multiple=1):
+        return (2000 * sqrt(rt60 / self.V)) * multiple

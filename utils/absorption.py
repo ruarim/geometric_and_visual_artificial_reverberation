@@ -23,7 +23,7 @@ class Absorption:
         self.freq_bands = np.array(self.materials["center_freqs"])
         self.coefficients = self._get_coefficients()
         self.coefficients_dict = self._get_coefficients_dict()
-        self.extrapolated_coefficients = self._extrapolate_coefficients()
+        # TODO: add seperate air absorption variable
         
     def plots_coefficients(self):
         """
@@ -71,7 +71,7 @@ class Absorption:
         list: A 2D list of coefficients associated with each material name
         """
         coeffs_property = "coeffs"
-        return np.array([np.array(self._find_value_by_key(self.materials, material, coeffs_property) + + self._get_air_absorption(self.air_absorption)) for _, material in self.walls_material.items()])
+        return np.array([np.array(self._find_value_by_key(self.materials, material, coeffs_property) + self._get_air_absorption(self.air_absorption)) for _, material in self.walls_material.items()])
     
     def _get_coefficients_dict(self):
         """

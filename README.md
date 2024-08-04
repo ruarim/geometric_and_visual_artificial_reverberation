@@ -13,5 +13,5 @@ This project focuses on creating artificial reverberation using geometric techni
 Install the following Python packages using `pip`:
 
 ```bash
-pip install numpy scipy pyroomacoustics matlabengine matplotlib
+pip install numpy scipy pyroomacoustics matlabengine matplotlib librosa sympy
 ```

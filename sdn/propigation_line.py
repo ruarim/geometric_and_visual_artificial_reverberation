@@ -3,7 +3,7 @@
 #                                  --[wall filter]->[send sample to receiver]->[delay]->[add-sample from source]-->
 #             <scattering junction>                                                                                 <scattering junction>
 #                                  <--[add sample from source]<-[delay]<-[send sample to receiver]<-[wall filter]--
-from utils.delay_line import DelayLine
+from utils.delay import DelayLine
 from utils.point3D import Point3D
 from math import sqrt, floor
 

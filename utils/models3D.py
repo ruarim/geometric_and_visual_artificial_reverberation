@@ -20,8 +20,8 @@ def calculate_dimensions(vertices):
     max_vals = np.max(vertices, axis=0)
 
     dimensions = max_vals - min_vals
-    length, height, width = dimensions
-
+    width, height, length = np.round(dimensions, 2)
+    
     return length, height, width
 
 def get_room_dims(file_path):

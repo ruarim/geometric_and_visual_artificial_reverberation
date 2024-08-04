@@ -67,7 +67,7 @@ def plot_fir(x, freqs, gains, fs, db=False, y_scale='linear', plot_spec=False, n
         h_2_min = power_to_db(h_2_min**2)
     
     plt.figure(figsize=(10, 4))
-    plt.title(f"{title}FIR Frequency Response vs Desired Attenuation at bands")
+    plt.title(f"{title} FIR Frequency Response vs Desired Attenuation at bands")
     plt.xscale('log')
     plt.xticks(freqs, labels=[str(band) for band in freqs])
     # plt.xlim([freqs[0] - (freqs[0] / 2), nyquist + 1000])
@@ -116,7 +116,7 @@ def plot_fir(x, freqs, gains, fs, db=False, y_scale='linear', plot_spec=False, n
         y = lfilter(fir_coeffs_2_min, [1], x)
         # y = filter_sample_by_sample(x, fir_coeffs_2, y)  
         plot_spectrogram(y, sr=fs, y_scale=y_scale, title='FIR Type II Min-Phase Output Spectogram')
-    
+
 def filter_sample_by_sample(x, b, y):
     zi = np.zeros(len(b) - 1)
     
@@ -126,3 +126,10 @@ def filter_sample_by_sample(x, b, y):
         zi = zf
     
     return y
+
+def tone_correction(x, absorption_coeffs, absorption_bands, fs, taps=200, plot=False):
+    avg_gain = np.mean(1 - absorption_coeffs, axis=0)
+    b, b_min = fir_type_2(absorption_bands, avg_gain, fs, numtaps=taps)
+    tonal_correction = lfilter(b_min, [1], x) 
+    if plot: plot_fir(x=None, freqs=absorption_bands, gains=avg_gain, fs=fs, numtaps=taps, title='Tonal Filter')
+    return tonal_correction  

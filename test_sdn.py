@@ -57,7 +57,7 @@ ism_rir = ism.render(order=ism_order, plot_rt60=True)
 ism_full_rir_norm = ism_rir / np.max(ism_rir)
 
 config_str = f'SDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}'
-# write_array_to_wav(test_config.FULL_RIR_DIR, f"{config_str}", sdn_rir, simulation_config.FS)
+write_array_to_wav(test_config.FULL_RIR_DIR, f"{config_str}", sdn_rir, simulation_config.FS)
 
 plt.figure(figsize=(10, 4))
 plt.title('SDN RT60')

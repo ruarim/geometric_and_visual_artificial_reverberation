@@ -1,5 +1,6 @@
 from math import floor
 from dataclasses import dataclass, field
+from utils.models3D import get_room_dims
 
 @dataclass
 class SimulationConfig:
@@ -24,14 +25,13 @@ class RoomConfig:
         "south": "hard_surface",
         "east": "hard_surface",
         "west": "hard_surface",
-        "floor": "linoleum_on_concrete",
+        "floor": "carpet_cotton",
         "ceiling": "hard_surface",
     })
-    MODEL_PATH: str = ""
     MATERIALS_DIR: str = "_data/vorlander_auralization/materials.json"
-    ROOM_DIMS: tuple = (14.0, 7.0, 2.6)
-    SOURCE_LOC: tuple = (1.0, 0.75, 0.5)
-    MIC_LOC: tuple = (2.5, 0.75, 0.5)
+    ROOM_DIMS: tuple = field(default_factory=lambda: get_room_dims('_rooms/small_hallway.obj'))
+    SOURCE_LOC: tuple = (1.0, 1.5, 1.0)
+    MIC_LOC: tuple = (1.9, 1.5, 1.0)
     CHANNEL_LEVELS: tuple = (1.0, 1.0)
     DIRECT_PATH: bool = False
     ER_ORDER: int = 2
@@ -42,7 +42,7 @@ class TestConfig:
     SIGNAL_TYPE: str = "unit"
     BURST_LENGTH: float = 0.01
     SAMPLES_DIR: str = "_samples/"
-    FILE_NAME: str = "Clap 808 Color 03.wav"
+    FILE_NAME: str = "vital_saw.wav"
     ER_RIR_DIR: str = "_output/early_reflections_rirs/" 
     LR_RIR_DIR: str = "_output/late_reverberation_rirs/"
     FULL_RIR_DIR: str = "_output/full_rirs/"
