@@ -5,7 +5,7 @@ from utils.models3D import get_room_dims
 @dataclass
 class SimulationConfig:
     FS: int = 44100
-    SIGNAL_LENGTH: int = (FS * 5)
+    SIGNAL_LENGTH: int = (FS * 3)
     MAX_DELAY_SECS: float = 1.0
     MAX_DELAY: int = floor(1.0 * FS)
     SPEED_OF_SOUND: float = 343.0
@@ -39,7 +39,7 @@ class RoomConfig:
 
 @dataclass
 class TestConfig:
-    SIGNAL_TYPE: str = "unit"
+    SIGNAL_TYPE: str = "file"
     BURST_LENGTH: float = 0.01
     SAMPLES_DIR: str = "_samples/"
     FILE_NAME: str = "vital_saw.wav"

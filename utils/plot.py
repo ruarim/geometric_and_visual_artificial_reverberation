@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from math import floor
 import librosa
 
-def plot_signal(signal, title="", fs=44100, plot_time=False, xlim=None):
+def plot_signal(signal, title="", fs=44100, plot_time=True, xlim=None):
     plt.figure(figsize=(10, 4))
     plt.title(title)
     
@@ -18,7 +18,7 @@ def plot_signal(signal, title="", fs=44100, plot_time=False, xlim=None):
     plt.ylabel('Amplitude Linear')
     if(xlim != None): plt.xlim(xlim)
     
-def plot_comparision(signals, title="", plot_time=False, fs=44100, xlim=None, y_offset=0.0):
+def plot_comparison(signals, title="", plot_time=True, fs=44100, xlim=None, y_offset=0.0):
     plt.figure(figsize=(10, 4))
     plt.title(title)
     count = 0

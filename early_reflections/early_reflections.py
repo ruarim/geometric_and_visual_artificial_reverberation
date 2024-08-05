@@ -31,14 +31,14 @@ class EarlyReflections:
         distance_attenuation = self._make_distance_attenuation()
         wall_attenuation_flat = self._make_wall_attenuation_flat()
         
-        if not material_filter: self.attenuation = distance_attenuation + wall_attenuation_flat
+        if not material_filter: self.distance_attenuation = distance_attenuation + wall_attenuation_flat
         
-        self.attenuation = distance_attenuation
+        self.distance_attenuation = distance_attenuation
         self.wall_filter_coeffs = self._make_wall_filters()
         
         self.direct_delay = self._point_to_delay_time(self.mic, self.source)
         
-        self.tapped_delay_line = TappedDelayLine(self.delay_times, self.attenuation, self.wall_filter_coeffs, self.fs, use_filter=material_filter)
+        self.tapped_delay_line = TappedDelayLine(self.delay_times, self.distance_attenuation, self.wall_filter_coeffs, self.fs, use_filter=material_filter)
             
     # TODO also return direct sound in a seperate array
     def process(self, input_signal, output_signal, type: str):
@@ -48,12 +48,15 @@ class EarlyReflections:
         Returns: delayed and attenuated samples (numpy array)
         """
         direct = delay_array(input_signal, self.direct_delay, self.fs)
+        
         if type == 'tdl': 
             er = self.tapped_delay_line.process(input_signal, output_signal)
-            return er, direct
-        if type == 'convolve': 
+        if type == 'convolve':
             er = fft_convolution(input_signal, self.ism_rir, output_signal)
-            return er, direct
+        if type == 'multi-channel':
+            er = np.array([delay_array(input_signal, d, self.fs) * gain for d, gain in zip(self.delay_times, self.distance_attenuation)])
+        
+        return er, direct
                 
     def _make_early_reflection_delay_times(self):
         return [self._point_to_delay_time(self.mic, image_source) for image_source in self.image_sources]

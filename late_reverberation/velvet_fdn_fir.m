@@ -11,7 +11,7 @@ x = x(:,1); % TODO: Pass signal length
 N = size(delay_times, 2);
 numFDNInput = 1;
 numFDNOutput = 1;
-inputGain = ones(N,numFDNInput) / sqrt(N);
+inputGain = ones(N,numFDNInput);
 outputGain = ones(numFDNInput, N);
 direct = zeros(numFDNOutput,numFDNInput);
 delays = double(delay_times);
@@ -43,7 +43,7 @@ end
 targetT60 = [targetT60(1,:); targetT60; nyquist_rt60];
 
 % Using filterbank
-filterOrder = 96;
+filterOrder = 96; % try 32
 
 absorption = absorptionFilters(T60frequency, targetT60, filterOrder, delays + approximation, fs);
 absorptionMatrix = polydiag( absorption );

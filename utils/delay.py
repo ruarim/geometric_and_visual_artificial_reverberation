@@ -23,6 +23,11 @@ class DelayLine:
 def delay_array(x, delay, fs, frac_filter_N=81):
     """
     Delay an array via zero padding
+    
+    Params: 
+    x: signal to delay
+    delay: delay time in seconds,
+    fs: sampling frequnecy
     """
     output_signal = np.zeros_like(x)
     
@@ -59,7 +64,7 @@ class TappedDelayLine:
             # correct for the group delay of the fractional delay filter
             # fractional_delayed_signal = np.concatenate(
             #     (np.zeros(self.group_delay), fractional_delayed_signal)
-            # )
+            # ) 
             
             if(self.use_filter): fractional_delayed_signal = lfilter(filter_coeffs, [1], fractional_delayed_signal)
             output_signal += (gain * fractional_delayed_signal)
