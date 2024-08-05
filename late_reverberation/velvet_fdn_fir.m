@@ -1,6 +1,6 @@
 % Velvet FDN where the stucture is inverted such that the output of
 % taken from the mixing matrix instead of the delay lines.
-function [rir] = velvet_fdn_fir(fs, er_signal, delay_times, rt60s, rt60_bands)
+function [rir] = velvet_fdn_fir(fs, er_signal, delay_times, rt60s, rt60_bands, matrix_type)
 fs = double(fs);
 
 % input signal
@@ -9,9 +9,9 @@ x = x(:,1); % TODO: Pass signal length
 
 % Define FDN
 N = size(delay_times, 2);
-numFDNInput = 1;
+numFDNInput = size(er_signal, 1);
 numFDNOutput = 1;
-inputGain = ones(N,numFDNInput);
+inputGain = ones(N,numFDNInput) / sqrt(N);
 outputGain = ones(numFDNInput, N);
 direct = zeros(numFDNOutput,numFDNInput);
 delays = double(delay_times);
@@ -20,7 +20,7 @@ numberOfStages = 2;
 sparsity = 2;
 maxShift = 30;
 
-[feedbackMatrix, revFeedbackMatrix] = constructCascadedParaunitaryMatrix( N, numberOfStages, 'sparsity', sparsity, 'matrixType', 'random');
+[feedbackMatrix, revFeedbackMatrix] = constructCascadedParaunitaryMatrix( N, numberOfStages, 'sparsity', sparsity, 'matrixType', matrix_type);
 [feedbackMatrix, revFeedbackMatrix] = randomMatrixShift(maxShift, feedbackMatrix, revFeedbackMatrix);
 
 % absorption filters including delay of scattering matrix

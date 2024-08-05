@@ -187,23 +187,24 @@ plot_spectrogram(fir_rir, fs, xlim=xlim, title="Spectrogram of ISM-FDN (FIR abso
 comparison = {
         'one-pole fdn': lr_one_pole,
         'one-pole fdn (MISO)': lr_one_pole_multi + 0.3,
+        'Early Reflections Multi Channel': np.sum(er_signal_multi, axis=0)
         # 'one-pole tonal correction fdn': lr_signal_one_pole_tonal_correction,
         # 'fir fdn' : lr_signal_fir,
 }
 plot_comparison(comparison, xlim=xlim, plot_time=True)
 
-# RT60s
-plt.figure(figsize=(10, 4))
-plt.title('ISM RT60')
-measure_rt60(ism_rir, fs=fs, plot=True, rt60_tgt=rt60_sabine_bands_500)
+# # RT60s
+# plt.figure(figsize=(10, 4))
+# plt.title('ISM RT60')
+# measure_rt60(ism_rir, fs=fs, plot=True, rt60_tgt=rt60_sabine_bands_500)
 
-plt.figure(figsize=(10, 4))
-plt.title('ISM-FDN (one-pole) RT60')
-measure_rt60(one_pole_rir, fs=fs, plot=True, rt60_tgt=rt60_sabine_bands_500)
-measure_rt60(one_pole_tonal_correction_rir, fs=fs, plot=True, rt60_tgt=rt60_sabine_bands_500)
+# plt.figure(figsize=(10, 4))
+# plt.title('ISM-FDN (one-pole) RT60')
+# measure_rt60(one_pole_rir, fs=fs, plot=True, rt60_tgt=rt60_sabine_bands_500)
+# measure_rt60(one_pole_tonal_correction_rir, fs=fs, plot=True, rt60_tgt=rt60_sabine_bands_500)
 
-plt.figure(figsize=(10, 4))
-plt.title('ISM-FDN (FIR) RT60')
-measure_rt60(fir_rir, fs=fs, plot=True, rt60_tgt=rt60_sabine_bands_500)
+# plt.figure(figsize=(10, 4))
+# plt.title('ISM-FDN (FIR) RT60')
+# measure_rt60(fir_rir, fs=fs, plot=True, rt60_tgt=rt60_sabine_bands_500)
 
 plt.show()

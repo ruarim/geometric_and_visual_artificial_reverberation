@@ -1,13 +1,13 @@
 % Velvet FDN where the stucture is inverted such that the output of
 % taken from the mixing matrix instead of the delay lines.
-function [rir] = velvet_fdn_one_pole(fs, er_signal, delay_times, rt60s, rt60_bands, crossover_frequency, matrixType)
+function [rir] = velvet_fdn_one_pole(fs, er_signal, delay_times, rt60s, rt60_bands, crossover_frequency, matrix_type)
 fs = double(fs);
 
 % Define FDN
 N = size(delay_times, 2);
 numFDNInput = size(er_signal, 1);
 numFDNOutput = 1;
-inputGain = ones(N,numFDNInput);
+inputGain = ones(N,numFDNInput) / sqrt(N);
 outputGain = ones(numFDNInput, N);
 direct = zeros(numFDNOutput,numFDNInput);
 delays = double(delay_times);
@@ -20,7 +20,7 @@ numberOfStages = 2;
 sparsity = 2;
 maxShift = 30;
 
-[feedbackMatrix, revFeedbackMatrix] = constructCascadedParaunitaryMatrix( N, numberOfStages, 'sparsity', sparsity, 'matrixType', matrixType);
+[feedbackMatrix, revFeedbackMatrix] = constructCascadedParaunitaryMatrix( N, numberOfStages, 'sparsity', sparsity, 'matrixType', matrix_type);
 [feedbackMatrix, revFeedbackMatrix] = randomMatrixShift(maxShift, feedbackMatrix, revFeedbackMatrix);
 
 % absorption filters including delay of scattering matrix
@@ -37,7 +37,6 @@ switch 'firstOrder'
     case 'firstOrder'
         [absorption.b,absorption.a] = firstOrderAbsorption(targetT60(1), targetT60(end), crossover_frequency, delays + approximation, fs);
 end
-
 
 zAbsorption = zTF(absorption.b, absorption.a,'isDiagonal', true);
 

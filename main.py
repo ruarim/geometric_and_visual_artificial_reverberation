@@ -9,7 +9,7 @@ from early_reflections.ism import ImageSourceMethod
 from early_reflections.early_reflections import EarlyReflections
 from utils.point3D import Point3D
 from utils.signals import signal
-from utils.plot import plot_comparision, plot_spectrogram, plot_signal
+from utils.plot import plot_comparison, plot_spectrogram, plot_signal
 from utils.reverb_time import ReverbTime
 from utils.file import write_array_to_wav
 from utils.absorption import Absorption
@@ -136,7 +136,7 @@ if output_config.PLOT:
         offset_ref = ism_fdn_rir
         y_offset = np.max(offset_ref) + np.abs(np.min(offset_ref))
 
-        plot_comparision(
+        plot_comparison(
                 compare_data, 
                 f'ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}', 
                 xlim=xlim, 

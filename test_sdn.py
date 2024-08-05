@@ -53,7 +53,8 @@ sdn_rir = run_sdn_simulation(
 )
 
 print('ISM: simulating room')
-ism = ImageSourceMethod(room_config, fs=simulation_config.FS) # pass specific config values instead
+ism = ImageSourceMethod(room_config, fs=simulation_config.FS)
+
 # render full rir for comparison
 ism_order = 100
 ism_rir = ism.render(order=ism_order, plot_rt60=True)

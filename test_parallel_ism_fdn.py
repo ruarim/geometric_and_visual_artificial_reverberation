@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 
 from config import SimulationConfig, RoomConfig, TestConfig, OutputConfig
 from utils.matlab import init_matlab_eng
-from utils.plot import plot_spectrogram, plot_comparison
+from utils.plot import plot_spectrogram, plot_comparison, plot_signal
 from utils.signals import signal
 from utils.reverb_time import ReverbTime
 from utils.absorption import Absorption
@@ -71,30 +71,45 @@ output_signal = np.zeros_like(input_signal)
 er_tdl, direct_sound = early_reflections.process(input_signal, output_signal, type='tdl')
 er_convolved, _ = early_reflections.process(input_signal, output_signal, type='convolve')
 
-# from colourless FDN paper (ref)
-# fdn_delay_times = np.array([809, 877, 937, 1049, 1151, 1249, 1373, 1499])
-
 # delay from geometry
-fdn_N = len(early_reflections.delay_times)
-matrix_type = 'random'
-fdn_delay_times = np.array([int(delay_sec * fs) for delay_sec in set(early_reflections.delay_times)])
-fdn_delay_times = find_closest_primes(fdn_delay_times)[:fdn_N]
+fdn_delay_times = early_reflections.delay_times
+fdn_N = 8
+fdn_N = len(fdn_delay_times)
+
+assert fdn_N <= len(fdn_delay_times), 'FDN order exceeds delays'
+
+# get closest primes to image source delay times
+fdn_delay_times = np.array([int(delay_sec * fs) for delay_sec in set(fdn_delay_times)])
+fdn_delay_times = find_closest_primes(fdn_delay_times)
+
+# if FDN order is power of two use a Hadamard otherwise use a random matrix
+power_two_N = (fdn_N % 2 == 0)
+if not power_two_N:
+        matrix_type = 'random' 
+
+if power_two_N:
+        matrix_type = 'Hadamard' 
+        # kth element sampling of delay times
+        fdn_delay_times = np.sort(fdn_delay_times)
+        k = len(fdn_delay_times) / fdn_N
+        fdn_delay_times = np.array([fdn_delay_times[int(i * k)] for i in range(fdn_N)])
+
 print(f'FDN Delays: {fdn_delay_times}')
 print(f'Delays mutually prime: {is_mutually_prime(fdn_delay_times)}')
 
 # start matlab process
 matlab_eng = init_matlab_eng()
 
+print('FDN: Processing late reverberation')
 # delay the input to the fdn by the shortest early reflection time
 early_reflections.delay_times.sort()
 early_reflections.distance_attenuation.sort()
 first_er_delay =  early_reflections.delay_times[0]
-first_er_distance =  early_reflections.distance_attenuation[0]
-# TODO: account for fdn fir group delay
-input_signal = delay_array(input_signal, first_er_delay, fs) * first_er_distance# apply distance attenuation
+
+input_signal = delay_array(input_signal, first_er_delay, fs)
 
 lr_one_pole = matlab_eng.velvet_fdn_one_pole(fs, input_signal, fdn_delay_times, rt60_sabine, absorption_bands, tranistion_frequency, matrix_type)
-lr_fir      = matlab_eng.velvet_fdn_fir(fs, input_signal, fdn_delay_times, rt60_sabine, absorption_bands)
+lr_fir      = matlab_eng.velvet_fdn_fir(fs, input_signal, fdn_delay_times, rt60_sabine, absorption_bands, matrix_type)
 
 lr_one_pole = np.array([t[0] for t in lr_one_pole])
 lr_fir      = np.array([t[0] for t in lr_fir])
@@ -109,7 +124,7 @@ lr_one_pole = tone_correction(
 )
 
 rir_one_pole = direct_sound + er_tdl + lr_one_pole
-rir_fir = direct_sound + er_tdl + lr_fir
+rir_fir = direct_sound + er_tdl + lr_fir # TODO: account for fdn fir group delay
 
 # end matlab process
 matlab_eng.quit()
@@ -119,15 +134,17 @@ config_str = f'Parallel ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dime
 write_array_to_wav(test_config.FULL_RIR_DIR, f"{config_str} One Pole", rir_one_pole, fs)
 write_array_to_wav(test_config.FULL_RIR_DIR, f"{config_str} FIR", rir_fir, fs)
 
-xlim = [0, 2]
+spec_xlim = [0, 2]
+wave_xlim = [0, 0.5]
 compare = {
         'ER': er_tdl,
         'LR One Pole': lr_one_pole,
         'LR FIR': lr_fir,
 }
 
-plot_comparison(compare, xlim=xlim)
-
-plot_spectrogram(rir_one_pole, fs, xlim=xlim)
-plot_spectrogram(rir_fir, fs, xlim=xlim)
+plot_spectrogram(rir_one_pole, fs, xlim=spec_xlim)
+plot_spectrogram(rir_fir, fs, xlim=spec_xlim)
+plot_comparison(compare, xlim=wave_xlim)
+plot_signal(rir_fir,  xlim=wave_xlim)
+plot_signal(rir_one_pole,  xlim=wave_xlim)
 plt.show()
