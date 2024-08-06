@@ -1,6 +1,6 @@
 % Velvet FDN where the stucture is inverted such that the output of
 % taken from the mixing matrix instead of the delay lines.
-function [rir] = velvet_fdn_fir(fs, er_signal, delay_times, rt60s, rt60_bands, matrix_type)
+function [rir] = velvet_fdn_fir(fs, er_signal, delay_times, rt60s, rt60_bands, matrix_type, filter_order)
 fs = double(fs);
 
 % input signal
@@ -11,7 +11,7 @@ x = x(:,1); % TODO: Pass signal length
 N = size(delay_times, 2);
 numFDNInput = size(er_signal, 1);
 numFDNOutput = 1;
-inputGain = ones(N,numFDNInput) / sqrt(N);
+inputGain = ones(N,numFDNInput);
 outputGain = ones(numFDNInput, N);
 direct = zeros(numFDNOutput,numFDNInput);
 delays = double(delay_times);
@@ -43,7 +43,7 @@ end
 targetT60 = [targetT60(1,:); targetT60; nyquist_rt60];
 
 % Using filterbank
-filterOrder = 96; % try 32
+filterOrder = double(filter_order); % try 32
 
 absorption = absorptionFilters(T60frequency, targetT60, filterOrder, delays + approximation, fs);
 absorptionMatrix = polydiag( absorption );

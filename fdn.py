@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from math import sqrt
 
 from utils.matlab import init_matlab_eng
 from utils.plot import plot_spectrogram, plot_signal
@@ -28,12 +29,20 @@ rt60_sabine, rt60_eyring = reverb_time.rt60s_bands(absorption_coeffs, absorption
 # log distributed mutual primes from colourless FDN paper (TODO: ref)
 fdn_delay_times = np.array([809, 877, 937, 1049, 1151, 1249, 1373, 1499])
 
-x, _ = signal('unit', fs * 3, fs)
+# run acoustic simulation
+x, fs = signal(
+        test_config.SIGNAL_TYPE, 
+        simulation_config.SIGNAL_LENGTH, 
+        fs, 
+        data_dir=test_config.SAMPLES_DIR, 
+        file_name=test_config.FILE_NAME,
+)
 
 # start matlab process
 matlab_eng = init_matlab_eng()
 
-rir =  matlab_eng.standard_fdn(fs, x, fdn_delay_times, rt60_sabine)
+scaling_factor = 1 / sqrt(len(fdn_delay_times))
+rir =  matlab_eng.standard_fdn(fs, x * scaling_factor, fdn_delay_times, rt60_sabine)
 
 rir = np.array([t[0] for t in rir])
 

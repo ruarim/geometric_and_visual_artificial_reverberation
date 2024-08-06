@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from pyroomacoustics.experimental.rt60 import measure_rt60
+from math import sqrt
 
 from utils.matlab import init_matlab_eng
 from config import SimulationConfig, RoomConfig, TestConfig, OutputConfig
@@ -110,13 +111,15 @@ er_signal_multi,    direct_sound = early_reflections.process(input_signal, outpu
 # start matlab process
 matlab_eng = init_matlab_eng()
 
+lr_fir_filter_order = 96
+scaling_factor = 1 / sqrt(len(fdn_delay_times))
 # apply FDN reverberation to output of early reflection stage
 print('FDN: one pole processing late reverberation')
-lr_one_pole = matlab_eng.velvet_fdn_one_pole(fs, er_tdl, fdn_delay_times, rt60_sabine, absorption_bands, tranistion_frequency, matrix_type)
+lr_one_pole = matlab_eng.velvet_fdn_one_pole(fs, er_tdl * scaling_factor, fdn_delay_times, rt60_sabine, absorption_bands, tranistion_frequency, matrix_type)
 print('FDN: one pole (MISO) processing late reverberation')
-lr_one_pole_multi = matlab_eng.velvet_fdn_one_pole(fs, er_signal_multi, fdn_delay_times, rt60_sabine, absorption_bands, tranistion_frequency, matrix_type)
+lr_one_pole_multi = matlab_eng.velvet_fdn_one_pole(fs, er_signal_multi * scaling_factor, fdn_delay_times, rt60_sabine, absorption_bands, tranistion_frequency, matrix_type)
 print('FDN: FIR processing late reverberation')
-lr_fir = matlab_eng.velvet_fdn_fir(fs, er_tdl, fdn_delay_times, rt60_sabine, absorption_bands)
+lr_fir = matlab_eng.velvet_fdn_fir(fs, er_tdl * scaling_factor, fdn_delay_times, rt60_sabine, absorption_bands, matrix_type, lr_fir_filter_order)
 
 # end matlab process
 matlab_eng.quit()
@@ -186,7 +189,7 @@ plot_spectrogram(fir_rir, fs, xlim=xlim, title="Spectrogram of ISM-FDN (FIR abso
 
 comparison = {
         'one-pole fdn': lr_one_pole,
-        'one-pole fdn (MISO)': lr_one_pole_multi + 0.3,
+        'one-pole fdn (MISO)': lr_one_pole_multi,
         'Early Reflections Multi Channel': np.sum(er_signal_multi, axis=0)
         # 'one-pole tonal correction fdn': lr_signal_one_pole_tonal_correction,
         # 'fir fdn' : lr_signal_fir,

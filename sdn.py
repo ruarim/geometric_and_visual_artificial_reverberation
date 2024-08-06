@@ -52,6 +52,8 @@ sdn_rir = run_sdn_simulation(
         direct_path=True
 )
 
+# apply tonal correction?
+
 print('ISM: simulating room')
 ism = ImageSourceMethod(room_config, fs=simulation_config.FS)
 
