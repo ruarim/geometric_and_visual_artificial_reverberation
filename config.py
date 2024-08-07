@@ -9,6 +9,7 @@ class SimulationConfig:
     MAX_DELAY_SECS: float = 1.0
     MAX_DELAY: int = floor(1.0 * FS)
     SPEED_OF_SOUND: float = 343.0
+    # CROSSOVER_FREQ_MULTIPLE: int: 2 implement this.
 
 @dataclass
 class RoomConfig:
