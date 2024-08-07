@@ -89,9 +89,9 @@ def plot_fir(x, freqs, gains, fs, db=False, y_scale='linear', plot_spec=False, n
         plot_spectrogram(x, sr=fs, y_scale=y_scale, title='Input Spectrogram')
         
         y = np.zeros_like(x)
-        # y = fft_convolution(x, fir_coeffs_1, y)
+        # y = fft_convolution(x, fir_coeffs_1)
         y = lfilter(fir_coeffs_1, [1], x)
-        # y = filter_sample_by_sample(x, fir_coeffs_1, y)    
+        # y = filter_sample_by_sample(x, fir_coeffs_1)    
         # plt.figure(figsize=(10,4))
         # plt.plot(x, label='Input')
         # plt.plot(y, label='Output')
@@ -100,19 +100,19 @@ def plot_fir(x, freqs, gains, fs, db=False, y_scale='linear', plot_spec=False, n
         
         
         y = np.zeros_like(x)
-        # y = fft_convolution(x, fir_coeffs_2, y)
+        # y = fft_convolution(x, fir_coeffs_2)
         y = lfilter(fir_coeffs_2, [1], x)
         # y = filter_sample_by_sample(x, fir_coeffs_2, y)  
         plot_spectrogram(y, sr=fs, y_scale=y_scale, title='FIR Type II Output Spectogram')
         
         y = np.zeros_like(x)
-        # y = fft_convolution(x, fir_coeffs_1, y)
+        # y = fft_convolution(x, fir_coeffs_1)
         y = lfilter(fir_coeffs_1_min, [1], x)
         # y = filter_sample_by_sample(x, fir_coeffs_1, y)    
         plot_spectrogram(y, sr=fs, y_scale=y_scale, title='FIR Type I Min-Phase Output Spectogram')
         
         y = np.zeros_like(x)
-        # y = fft_convolution(x, fir_coeffs_2, y)
+        # y = fft_convolution(x, fir_coeffs_2)
         y = lfilter(fir_coeffs_2_min, [1], x)
         # y = filter_sample_by_sample(x, fir_coeffs_2, y)  
         plot_spectrogram(y, sr=fs, y_scale=y_scale, title='FIR Type II Min-Phase Output Spectogram')

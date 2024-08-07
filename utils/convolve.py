@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.fft import fft, ifft
 
-def fft_convolution(x, ir, y, norm=False):
+def fft_convolution(x, ir, norm=False):
+    y = np.zeros_like(x)
     # Find the next power of two for zero-padding (for efficient FFT computation)
     n = len(x) + len(ir) - 1
     N = 2 ** np.ceil(np.log2(n)).astype(int)

@@ -50,9 +50,9 @@ class EarlyReflections:
         direct = delay_array(input_signal, self.direct_delay, self.fs)
         
         if type == 'tdl': 
-            er = self.tapped_delay_line.process(input_signal, output_signal)
+            er = self.tapped_delay_line.process(input_signal)
         if type == 'convolve':
-            er = fft_convolution(input_signal, self.ism_rir, output_signal)
+            er = fft_convolution(input_signal, self.ism_rir)
         if type == 'multi-channel':
             er = np.array([delay_array(input_signal, d, self.fs) * gain for d, gain in zip(self.delay_times, self.distance_attenuation)])
         

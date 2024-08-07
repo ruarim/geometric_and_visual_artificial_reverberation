@@ -51,7 +51,8 @@ class TappedDelayLine:
         self.frac_filter_N = frac_filter_N
         self.group_delay = (frac_filter_N - 1) // 2
 
-    def process(self, input_signal, output_signal):        
+    def process(self, input_signal):    
+        output_signal = np.zeros_like(input_signal)    
         for delay, gain, filter_coeffs in zip(self.delays, self.gains, self.filter_coeffs):
             delay_int = int(delay * self.fs)
             delay_frac = (self.fs * delay) - delay_int

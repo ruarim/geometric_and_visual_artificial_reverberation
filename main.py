@@ -13,7 +13,7 @@ from utils.plot import plot_comparison, plot_spectrogram, plot_signal
 from utils.reverb_time import ReverbTime
 from utils.file import write_array_to_wav
 from utils.absorption import Absorption
-from sdn.simulation import run_sdn_simulation
+from scattering_delay_network.simulation import run_sdn_simulation
 
         
 # create instances of config classes
@@ -27,7 +27,7 @@ absorption = Absorption(room_config.WALL_MATERIALS, room_config.MATERIALS_DIR, s
 
 # find image sources up to Nth order 
 ism = ImageSourceMethod(room_config, fs=simulation_config.FS) # pass specific config values instead
-ism_er_rir = ism.render(norm=True) # rendering early reflections with pyroomacoustics ism
+ism_er_rir = ism.process(norm=True) # rendering early reflections with pyroomacoustics ism
 image_source_coords, image_source_walls = ism.get_source_coords(show=False)
 image_source_points = [Point3D(image_source) for image_source in image_source_coords]
 source_point = Point3D(room_config.SOURCE_LOC)
@@ -109,7 +109,7 @@ ism_fdn_rir = np.array([er + lr[0] for er, lr in zip(er_signal_tdl, lr_signal)])
 
 # render pyroomacoustics rir for comparison
 ism_order = 100
-ism_rir = ism.render(order=ism_order, plot_rt60=True)
+ism_rir = ism.process(order=ism_order, plot_rt60=True)
 ism_full_rir_norm = ism_rir / np.max(ism_rir)
 
 config_str = f'ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}'

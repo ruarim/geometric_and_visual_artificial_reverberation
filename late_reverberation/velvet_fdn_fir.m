@@ -1,6 +1,6 @@
 % Velvet FDN where the stucture is inverted such that the output of
 % taken from the mixing matrix instead of the delay lines.
-function [rir] = velvet_fdn_fir(fs, er_signal, delay_times, rt60s, rt60_bands, matrix_type, filter_order)
+function [rir] = velvet_fdn_fir(fs, er_signal, delay_times, rt60s, rt60_bands, matrix_type, filter_order, nyquist_decay_type)
 fs = double(fs);
 
 % input signal
@@ -32,7 +32,7 @@ rt60_bands = double(transpose_row_2_col(rt60_bands));
 T60frequency = [0; rt60_bands; fs/2];
 targetT60 = transpose_row_2_col(rt60s) * ones(1,N);
 
-switch 'nyquist_zero'
+switch nyquist_decay_type
     case 'nyquist_zero'
         nyquist_rt60 = double(0)*ones(1,N);
     case 'nyquist_RT60'

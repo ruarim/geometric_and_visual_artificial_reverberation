@@ -42,7 +42,7 @@ class ImageSourceMethod:
 
         return shoebox
     
-    def render(self, order=0, norm=False, plot_rt60=False, rt60_theory_type='sabine'):
+    def process(self, order=0, norm=False, plot_rt60=False, rt60_theory_type='sabine'):
         """
         Render the room impulse response of the given geometery and materials
         """

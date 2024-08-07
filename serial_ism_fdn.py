@@ -26,8 +26,6 @@ output_config = OutputConfig()
 
 fs = simulation_config.FS
 
-print(f'Room Dimensions (L, H, W): {room_config.ROOM_DIMS}')
-
 # get the absoprtion coefficients at frequnecy bands for each wall
 absorption = Absorption(room_config.WALL_MATERIALS, room_config.MATERIALS_DIR, fs)
 absorption_coeffs = absorption.coefficients + absorption.air_absorption
@@ -36,7 +34,7 @@ absorption.plots_coefficients()
 
 # find image sources up to Nth order 
 ism = ImageSourceMethod(room_config, fs=fs) # pass specific config values instead
-ism_er_rir = ism.render(norm=True) # rendering early reflections with pyroomacoustics ism
+ism_er_rir = ism.process(norm=True) # rendering early reflections with pyroomacoustics ism
 image_source_coords, image_source_walls = ism.get_source_coords(show=False)
 image_source_points = [Point3D(image_source) for image_source in image_source_coords]
 source_point = Point3D(room_config.SOURCE_LOC)
@@ -108,18 +106,20 @@ er_tdl,             direct_sound = early_reflections.process(input_signal, outpu
 er_signal_convolve, direct_sound = early_reflections.process(input_signal, output_signal, type='convolve')
 er_signal_multi,    direct_sound = early_reflections.process(input_signal, output_signal, type='multi-channel')
 
+lr_fir_filter_order = 96
+lr_fir_nyquist_decay_type = "nyquist_zero"
+scaling_factor = 1 / sqrt(len(fdn_delay_times))
+
 # start matlab process
 matlab_eng = init_matlab_eng()
 
-lr_fir_filter_order = 96
-scaling_factor = 1 / sqrt(len(fdn_delay_times))
 # apply FDN reverberation to output of early reflection stage
 print('FDN: one pole processing late reverberation')
 lr_one_pole = matlab_eng.velvet_fdn_one_pole(fs, er_tdl * scaling_factor, fdn_delay_times, rt60_sabine, absorption_bands, tranistion_frequency, matrix_type)
 print('FDN: one pole (MISO) processing late reverberation')
 lr_one_pole_multi = matlab_eng.velvet_fdn_one_pole(fs, er_signal_multi * scaling_factor, fdn_delay_times, rt60_sabine, absorption_bands, tranistion_frequency, matrix_type)
 print('FDN: FIR processing late reverberation')
-lr_fir = matlab_eng.velvet_fdn_fir(fs, er_tdl * scaling_factor, fdn_delay_times, rt60_sabine, absorption_bands, matrix_type, lr_fir_filter_order)
+lr_fir = matlab_eng.velvet_fdn_fir(fs, er_tdl * scaling_factor, fdn_delay_times, rt60_sabine, absorption_bands, matrix_type, lr_fir_filter_order, lr_fir_nyquist_decay_type)
 
 # end matlab process
 matlab_eng.quit()
@@ -154,7 +154,7 @@ write_array_to_wav(test_config.FULL_RIR_DIR, f"{config_str}_FIR", fir_rir, fs)
 
 # render full rir for comparison
 ism_order = 100
-ism_rir = ism.render(order=ism_order)
+ism_rir = ism.process(order=ism_order)
 
 # plot
 compare_data = {

@@ -4,7 +4,7 @@ from math import sqrt
 
 from config import SimulationConfig, RoomConfig, TestConfig, OutputConfig
 from utils.matlab import init_matlab_eng
-from utils.plot import plot_spectrogram, plot_comparison, plot_signal
+from utils.plot import plot_spectrogram, plot_comparison, plot_signal, plot_room
 from utils.signals import signal
 from utils.reverb_time import ReverbTime
 from utils.absorption import Absorption
@@ -41,7 +41,7 @@ tranistion_frequency = reverb_time.transition_frequency(rt60_sabine_bands_500, m
 
 # find image sources up to Nth order 
 ism = ImageSourceMethod(room_config, fs=fs) # pass specific config values instead
-ism_er_rir = ism.render(norm=True, order=2) # rendering early reflections with pyroomacoustics ism
+ism_er_rir = ism.process(norm=True, order=2) # rendering early reflections with pyroomacoustics ism
 image_source_coords, image_source_walls = ism.get_source_coords(show=False)
 image_source_points = [Point3D(image_source) for image_source in image_source_coords]
 source_point = Point3D(room_config.SOURCE_LOC)
@@ -77,8 +77,11 @@ er_convolved, _ = early_reflections.process(input_signal, output_signal, type='c
 
 # delay from geometry
 fdn_delay_times = early_reflections.delay_times
+
+# conditional
+fdn_N = len(fdn_delay_times) # if -1
+# else
 fdn_N = 16
-# fdn_N = len(fdn_delay_times)
 
 assert fdn_N <= len(fdn_delay_times), 'FDN order exceeds delays'
 
@@ -109,15 +112,16 @@ first_er_delay =  early_reflections.delay_times[0]
 
 lr_fir_filter_order = 96
 lr_fir_group_delay = (lr_fir_filter_order // 2) / fs
-scaling_factor = 1 / sqrt(fdn_N)
+lr_fir_nyquist_decay_type = 'nyquist_zero'
+fdn_scaling_factor = 1 / sqrt(fdn_N)
 
 # start matlab process
 matlab_eng = init_matlab_eng()
 
 print('FDN: Processing late reverberation')
 
-lr_one_pole = matlab_eng.velvet_fdn_one_pole(fs, input_signal * scaling_factor , fdn_delay_times, rt60_sabine, absorption_bands, tranistion_frequency, matrix_type)
-lr_fir      = matlab_eng.velvet_fdn_fir(fs, input_signal * scaling_factor , fdn_delay_times, rt60_sabine, absorption_bands, matrix_type, lr_fir_filter_order)
+lr_one_pole = matlab_eng.velvet_fdn_one_pole(fs, input_signal * fdn_scaling_factor , fdn_delay_times, rt60_sabine, absorption_bands, tranistion_frequency, matrix_type)
+lr_fir      = matlab_eng.velvet_fdn_fir(fs, input_signal * fdn_scaling_factor , fdn_delay_times, rt60_sabine, absorption_bands, matrix_type, lr_fir_filter_order, lr_fir_nyquist_decay_type)
 
 lr_one_pole = np.array([t[0] for t in lr_one_pole])
 lr_fir      = np.array([t[0] for t in lr_fir])
@@ -141,14 +145,10 @@ rir_fir = direct_sound + er_tdl + lr_fir
 # end matlab process
 matlab_eng.quit()
 
-# normalise
-# rir_one_pole /= abs(np.max(rir_one_pole))
-# rir_fir /= abs(np.max(rir_fir))
-
 config_str = f'Parallel ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}'
 
-# write_array_to_wav(test_config.FULL_RIR_DIR, f"{config_str} One Pole", rir_one_pole, fs)
-# write_array_to_wav(test_config.FULL_RIR_DIR, f"{config_str} FIR", rir_fir, fs)
+write_array_to_wav(test_config.FULL_RIR_DIR, f"{config_str} One Pole", rir_one_pole, fs)
+write_array_to_wav(test_config.FULL_RIR_DIR, f"{config_str} FIR", rir_fir, fs)
 
 spec_xlim = [0, 2]
 wave_xlim = [0, 0.5]

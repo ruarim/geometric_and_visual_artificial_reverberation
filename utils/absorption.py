@@ -1,6 +1,5 @@
 from matplotlib import pyplot as plt
 import numpy as np
-from math import floor
 
 from utils.file import read_json
 
@@ -15,7 +14,7 @@ class Absorption:
         "center_freqs": [125, 250, 500, 1000, 2000, 4000, 8000],
     }
     
-    def __init__(self, walls_material: dict, data_dir: str, fs: float, temp_humidity='20C_30-50%'):
+    def __init__(self, walls_material: dict, data_dir: str, fs: float, temp_humidity='20C_50-70%'): # 20 Degress and 90% humidity on day of reference RIR recording
         self.temp_humidity = temp_humidity
         self.fs = fs
         self.materials: dict = read_json(data_dir)

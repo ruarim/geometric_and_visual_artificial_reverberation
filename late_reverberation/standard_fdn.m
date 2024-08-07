@@ -11,7 +11,7 @@ numFDNInput = 1;
 numFDNOutput = 1;
 inputGain = ones(N,numFDNInput);
 outputGain = ones(numFDNInput, N);
-direct = zeros(numFDNOutput,numFDNInput);
+direct = ones(numFDNOutput,numFDNInput);
 delays = double(delay_times);
 
 targetT60 = transpose_row_2_col(rt60s);
@@ -22,7 +22,7 @@ targetT60 = transpose_row_2_col(rt60s);
 % absorption filters including delay of scattering matrix
 % [approximation,approximationError] = matrixDelayApproximation(feedbackMatrix);
 
-RT_DC = targetT60(1); 
+RT_DC = targetT60(1);
 RT_NY = targetT60(end);
 
 [absorption.b,absorption.a] = onePoleAbsorption(RT_DC, RT_NY, delays, fs);
