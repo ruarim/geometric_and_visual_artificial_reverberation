@@ -30,16 +30,6 @@ def rirs_config(fs):
         file_name=test_config.FILE_NAME,
     )
     return [
-        # {
-        #     'name': "ISMFDN Serial - all ISM delays",
-        #     'processor': ISMFDN(
-        #         fs, 
-        #         simulation_config, 
-        #         room_config, 
-        #         fdn_N=-1, 
-        #         processing_type='serial'
-        #     ).process(input_signal),
-        # },
         {
             'name': "ISMFDN Parallel - all ISM delays",
             'processor': ISMFDN(
@@ -50,16 +40,6 @@ def rirs_config(fs):
                 processing_type='parallel'
             ).process(unit_impulse),
         },
-        # # {
-        # #     'name': "ISMFDN Serial - 16 ISM delays",
-        # #     'processor': ISMFDN(
-        # #         fs, 
-        # #         simulation_config, 
-        # #         room_config, 
-        # #         fdn_N=16, 
-        # #         processing_type='serial'
-        # #     ).process(input_signal),
-        # # },
         {
             'name': "ISMFDN Parallel - 16 ISM delays",
             'processor': ISMFDN(
@@ -111,16 +91,20 @@ def rirs_config(fs):
                 file_name=test_config.REAL_RIR_FILE,
             )[0]
         }
-        
     ]
 
+samples_dir = test_config.SAMPLES_DIR
 # set of anechoic audio
-anechoic_files = listdir(test_config.SAMPLES_DIR)
+anechoic_files = listdir(samples_dir)
 
 # create all stimuli for listening test
 stimuli_folder = '_output/stimuli/'
 
-prev_fs = signal("file", anechoic_files[0])
+prev_fs = signal(
+    "file", 
+    data_dir=samples_dir, 
+    file_name=anechoic_files[0]
+)
 
 rirs = rirs_config(prev_fs)
 
@@ -129,10 +113,9 @@ for file in anechoic_files:
     
     anechoic_audio, fs = signal(
         'file', 
-        data_dir=test_config.SAMPLES_DIR, 
+        data_dir=samples_dir, 
         file_name=file,
     )
-    print(fs)
     
     # recompute rirs if sampling rate changes
     if(fs != prev_fs):
@@ -155,14 +138,3 @@ for file in anechoic_files:
         print(f'Saved {name} - {file}')
         
     prev_fs = fs
-
-
-# convole all target audio with each RIR 
-
-
-# write_array_to_wav(test_config.FULL_RIR_DIR, 'test_fdn', stimulus, fs)
-
-# plt.figure()
-# plt.plot(stimulus)
-
-# plt.show()

@@ -16,7 +16,7 @@ from config import RoomConfig
 class ReverbTime:
     def __init__(self, room_config: RoomConfig):
         self.room_dims = room_config.ROOM_DIMS
-        self.absorption_flat = np.array([room_config.WALL_ABSORPTION[wall] for wall in room_config.WALL_ABSORPTION])
+        self.absorption_flat = np.array([room_config.WALL_MATERIALS_FLAT[wall] for wall in room_config.WALL_MATERIALS_FLAT])
         self.V = self.calc_V(self.room_dims)
         self.S = self.calc_A(self.room_dims)
     

@@ -16,7 +16,7 @@ class EarlyReflections:
         self.mic = mic
         self.image_sources = image_sources
         self.image_source_walls = image_source_walls
-        self.wall_absorption_flat = room_config.WALL_ABSORPTION
+        self.wall_absorption_flat = room_config.WALL_MATERIALS_FLAT
         self.wall_absorption_bands = material_absorption
         self.wall_center_freqs = wall_center_freqs
         self.fir_type = fir_type

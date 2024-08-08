@@ -4,7 +4,7 @@ from librosa import power_to_db
 from pyroomacoustics.experimental.rt60 import measure_rt60
 
 from utils.signals import signal
-from utils.plot import plot_comparision, plot_signal, plot_spectrogram
+from utils.plot import plot_comparison, plot_signal, plot_spectrogram
 from config import SimulationConfig, RoomConfig, TestConfig
 
 # configs
