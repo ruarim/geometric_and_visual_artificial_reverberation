@@ -1,6 +1,12 @@
 from math import floor
 from dataclasses import dataclass, field
 from utils.models3D import get_room_dims
+from utils.material_recognition import image_to_material
+
+MATERIALS_DIR: str = "_data/vorlander_auralization/materials.json"
+MANUAL_MATERIALS: bool = False
+ROOM_DIR: str = '_rooms'
+ROOM_IMAGES_DIR: str = 'small_hallway_images'
 
 @dataclass
 class SimulationConfig:
@@ -20,25 +26,17 @@ class RoomConfig:
         "floor": 0.0306,
         "ceiling": 0.0306,
     })
-    WALL_MATERIALS: dict = field(default_factory=lambda: { # manual materials
-        "north": "wooden_door",
-        "south": "wooden_door",
-        "east": "plasterboard",
-        "west": "plasterboard",
-        "floor": "linoleum_on_concrete",
-        "ceiling": "plasterboard",
+    WALL_MATERIALS: dict = field(default_factory=lambda: {
+        "north": "wooden_door" if MANUAL_MATERIALS else image_to_material(MATERIALS_DIR, f"{ROOM_DIR}/{ROOM_IMAGES_DIR}/north.PNG"),
+        "south": "wooden_door" if MANUAL_MATERIALS else image_to_material(MATERIALS_DIR, f"{ROOM_DIR}/{ROOM_IMAGES_DIR}/south.PNG"),
+        "east": "plasterboard" if MANUAL_MATERIALS else image_to_material(MATERIALS_DIR, f"{ROOM_DIR}/{ROOM_IMAGES_DIR}/east.PNG"),
+        "west": "plasterboard" if MANUAL_MATERIALS else image_to_material(MATERIALS_DIR, f"{ROOM_DIR}/{ROOM_IMAGES_DIR}/west.png"),
+        "floor": "linoleum_on_concrete" if MANUAL_MATERIALS else image_to_material(MATERIALS_DIR, f"{ROOM_DIR}/{ROOM_IMAGES_DIR}/floor.PNG"),
+        "ceiling": "plasterboard" if MANUAL_MATERIALS else image_to_material(MATERIALS_DIR, f"{ROOM_DIR}/{ROOM_IMAGES_DIR}/ceiling.PNG"),
     })
-    WALL_IMAGE_MATERIALS: dict = field(default_factory=lambda: { # estimated from image
-        "north": "_rooms/small_hallway_images/north.PNG", # image_to_material
-        "south": "_rooms/small_hallway_images/south.PNG",
-        "east": "_rooms/small_hallway_images/east.PNG",
-        "west": "_rooms/small_hallway_images/west.png",
-        "floor": "_rooms/small_hallway_images/floor.PNG",
-        "ceiling": "_rooms/small_hallway_images/ceiling.PNG",
-    })
+    MATERIALS_DIR: str = MATERIALS_DIR
     WALL_MATERIALS_TYPE: str = 'image' # TODO
-    MATERIALS_DIR: str = "_data/vorlander_auralization/materials.json"
-    ROOM_DIMS: tuple = field(default_factory=lambda: get_room_dims('_rooms/small_hallway.obj'))
+    ROOM_DIMS: tuple = field(default_factory=lambda: get_room_dims(f'{ROOM_DIR}/small_hallway.obj'))
     SOURCE_LOC: tuple = (0.5, 1.03,  1.25) # length, width, height
     MIC_LOC: tuple = (2.2, 1.02, 1.35)
     CHANNEL_LEVELS: tuple = (1.0, 1.0)
