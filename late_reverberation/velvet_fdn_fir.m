@@ -43,19 +43,15 @@ end
 targetT60 = [targetT60(1,:); targetT60; nyquist_rt60];
 
 % Using filterbank
-filterOrder = double(filter_order); % try 32
+filterOrder = double(filter_order);
 
 absorption = absorptionFilters(T60frequency, targetT60, filterOrder, delays + approximation, fs);
 absorptionMatrix = polydiag( absorption );
 absorptionFeedbackMatrix = zFIR(matrixConvolution(feedbackMatrix, absorptionMatrix));
 
 output_transposed = processTransposedFDN(x, delays, absorptionFeedbackMatrix, inputGain, outputGain, direct);
-% output_transposed = processTransposedFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct, 'absorptionFilters', zAbsorption);
 % lossless_output_transposed = processTransposedFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct);
-% output_transposed_norm = output_transposed / max(x);
 
 rir = output_transposed;
 
-%% Test: script finished
-assert(1 == 1);
 end

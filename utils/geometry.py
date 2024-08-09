@@ -1,4 +1,4 @@
-from math import sqrt, floor
+from math import sqrt
 from utils.point3D import Point3D
 
 # get the euclidean distance between a start and end point

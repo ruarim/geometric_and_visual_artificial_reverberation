@@ -7,7 +7,7 @@ This project focuses on creating artificial reverberation using geometric and im
 #### MATLAB Dependencies
 
 - **MATLAB**: Ensure MATLAB is installed on your system.
-- **fdnToolbox**: [Download](https://github.com/SebastianJiroSchlecht/fdnToolbox).
+- **fdnToolbox**: [GitHub](https://github.com/SebastianJiroSchlecht/fdnToolbox).
 - **MATLAB vs-code extension**: Use the VS Code extension to add required files to the MATLAB folder. To do this, right-click on the folder and select `MATLAB: Add Folder To Path`.
 
 #### Python Dependencies

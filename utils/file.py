@@ -24,9 +24,10 @@ def read_wav_file(data_dir: str, file_name: str):
     
     return fs, data
 
-def write_array_to_wav(dir: str, file_name: str, audio_data, fs):
+def write_array_to_wav(dir: str, file_name: str, audio_data, fs, time_stamp=True):
     # TODO: create folder if dir doesn't exist
-    date_time = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+    if time_stamp: date_time = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+    else: date_time = ''
     output_file = f'{dir}{date_time}-{file_name}.wav'
     write(output_file, fs, audio_data)
     

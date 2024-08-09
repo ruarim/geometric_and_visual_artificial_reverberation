@@ -4,7 +4,7 @@ from utils.models3D import get_room_dims
 from utils.material_recognition import image_to_material
 
 MATERIALS_DIR: str = "_data/vorlander_auralization/materials.json"
-MANUAL_MATERIALS: bool = False
+MANUAL_MATERIALS: bool = True
 ROOM_DIR: str = '_rooms'
 ROOM_IMAGES_DIR: str = 'small_hallway_images'
 
@@ -56,6 +56,7 @@ class TestConfig:
     FULL_RIR_DIR: str = "_output/full_rirs/"
     REAL_RIR_FILE: str = "small_hallway_rir.wav"
     PROCESSED_SAMPLES_DIR: str = '_output/processed_samples/'
+    STIMULI_DIR: str = '_output/stimuli/'
 
 @dataclass
 class OutputConfig:

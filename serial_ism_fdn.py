@@ -73,14 +73,11 @@ mean_free_path = calc_mean_free_path(reverb_time.V, np.sum(reverb_time.S))
 mean_free_path_delay = int(distance_to_delay(mean_free_path, simulation_config.SPEED_OF_SOUND) * (fs))
 
 print(f'Mean Free Path Delay: {mean_free_path_delay}')
-
 # delay from log mutual primes around mean free path
 # fdn_order = 8
 # log_mutal_primes = find_log_mutual_primes(mean_free_path_delay, fdn_order, percentage=75)
 # fdn_delay_times = np.array(log_mutal_primes)
 
-# from colourless FDN paper
-# fdn_delay_times = np.array([809, 877, 937, 1049, 1151, 1249, 1373, 1499])
 
 # delay from geometry
 fdn_N = len(early_reflections.delay_times)
@@ -98,7 +95,6 @@ input_signal, fs = signal(
         data_dir=test_config.SAMPLES_DIR, 
         file_name=test_config.FILE_NAME,
 )
-
 output_signal = np.zeros_like(input_signal)
 
 print('TDL: processing early reflections')

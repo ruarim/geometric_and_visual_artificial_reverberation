@@ -46,10 +46,7 @@ class ImageSourceMethod:
         """
         Render the room impulse response of the given geometery and materials
         """
-        # TODO - Remove direct sound path ??
         shoebox = self._configure_shoebox(order)
-        
-        # remove source
         
         # run image source method and render rir
         shoebox.image_source_model()

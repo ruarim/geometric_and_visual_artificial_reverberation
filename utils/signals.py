@@ -30,12 +30,12 @@ def file(data_dir, file_name):
 
 # return fs depenant on signal type 
 def signal(choice, signal_length=44100, fs=44100, burst_secs=0.1, gain=1.0, data_dir="", file_name="", channels=1):
-    if choice == "unit": 
+    if choice == "unit":
         signal = unit_impulse(signal_length, gain)
-    if choice == "noise": 
+    if choice == "noise":
         signal = noise_burst(signal_length, burst_secs, fs, gain)
-    if choice == "file": 
-        signal, file_fs = file(data_dir, file_name) # not returning file fs for now
+    if choice == "file":
+        signal, file_fs = file(data_dir, file_name)
         fs = file_fs
         # get mono
         if(channels == 1 and len(signal.shape) > 1): signal = [sample[0] for sample in signal] 

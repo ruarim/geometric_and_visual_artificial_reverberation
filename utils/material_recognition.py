@@ -17,8 +17,13 @@ def image_to_material(material_csv: str, image_path: str):
         
     materials_database = read_csv_text(csv_file_path)
     base64_image = encode_image(f'{image_path}')
-    system_prompt = 'Acoustic Material Classifier. Given a photo of a surface, identify the most likely material from the attached list of material names. All predictions MUST exist in the provided materials.json file. You must return a single-word response containing ONLY the material name, which is a key in the json file.'
-    user_prompt = 'Identify the main material'
+    
+    system_prompt = '''
+    Acoustic Material Classifier. 
+    Given a photo of a surface, identify the most likely material from the attached list of material names. 
+    All predictions MUST exist in the provided materials.json file. 
+    You must return a single-word response containing ONLY the material name, which is a key in the json file.'''
+    user_prompt   = 'Identify the main material'
     
     response = client.chat.completions.create(
     model="gpt-4o",
@@ -44,6 +49,6 @@ def image_to_material(material_csv: str, image_path: str):
     )
     
     material = response.choices[0].message.content
-    print(material)
+    print(f'MATERIAL FOUND: {material}')
     return material
     

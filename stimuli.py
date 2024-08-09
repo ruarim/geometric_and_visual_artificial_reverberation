@@ -1,18 +1,16 @@
 import numpy as np
 from os import listdir
+from random import randrange, sample
 
 from config import SimulationConfig, RoomConfig, TestConfig, OutputConfig
 from utils.signals import signal
 from utils.file import write_array_to_wav
 
 from ism_fdn import ISMFDN
-from standard_fdn import StandardFDN
 from sdn import SDN
 from early_reflections.ism import ImageSourceMethod
 
 from utils.convolve import fft_convolution
-
-# create a config to pass to each simulation class
 
 # config dataclasses
 simulation_config = SimulationConfig()
@@ -68,20 +66,12 @@ def rirs_config(fs):
                 room_config
             ).process(unit_impulse),
         },
-        # {
-        #     'name': "Standard FDN - 8 delays",
-        #     'processor': StandardFDN(
-        #         fs,
-        #         simulation_config, 
-        #         room_config
-        #     ).process(input_signal),
-        # },
         {
             'name': 'Image Source Method - 150th order',
             'processor': ImageSourceMethod(
                 room_config, 
                 fs=fs
-            ).process(order=150),
+            ).process(order=150, norm=True),
         },
         {
             'name': 'Small Hallway RIR',
@@ -93,14 +83,15 @@ def rirs_config(fs):
         }
     ]
 
-samples_dir = test_config.SAMPLES_DIR
 # set of anechoic audio
+samples_dir = test_config.SAMPLES_DIR
 anechoic_files = listdir(samples_dir)
+anechoic_files = [file for file in anechoic_files if file.endswith('.wav')]
 
 # create all stimuli for listening test
-stimuli_folder = '_output/stimuli/'
+stimuli_folder = test_config.STIMULI_DIR
 
-prev_fs = signal(
+_, prev_fs = signal(
     "file", 
     data_dir=samples_dir, 
     file_name=anechoic_files[0]
@@ -108,9 +99,8 @@ prev_fs = signal(
 
 rirs = rirs_config(prev_fs)
 
+# generate RIR and apply to target audio
 for file in anechoic_files:
-    if file[len(file)-4:] != '.wav': continue
-    
     anechoic_audio, fs = signal(
         'file', 
         data_dir=samples_dir, 
@@ -127,13 +117,30 @@ for file in anechoic_files:
         name = reverb['name']
         rir  = reverb['processor']
 
+        # single rir
         if not isinstance(rir, tuple):
+            random_order = randrange(0, 100)
             stimulus = fft_convolution(anechoic_audio, rir, norm=True)
-            write_array_to_wav(stimuli_folder, f"{name}_{file_name}", stimulus, fs)
-        else:
-            for rir, i in zip(rir, range(len(rir))):
-                stimulus = fft_convolution(anechoic_audio, rir, norm=True)
-                write_array_to_wav(stimuli_folder, f'{name}_{i+1}_{file_name}', stimulus, fs)
+            write_array_to_wav(
+                stimuli_folder, 
+                f"{random_order}_{name}_{file_name}", 
+                stimulus, 
+                fs, 
+                time_stamp=False
+            )
+            continue
+        
+        # multiple rirs
+        for rir, i in zip(rir, range(len(rir))):
+            random_order = randrange(0, 100)
+            stimulus = fft_convolution(anechoic_audio, rir, norm=True)
+            write_array_to_wav(
+                stimuli_folder, 
+                f'{random_order}_{name}_{i+1}_{file_name}', 
+                stimulus, 
+                fs, 
+                time_stamp=False
+        )
                 
         print(f'Saved {name} - {file}')
         

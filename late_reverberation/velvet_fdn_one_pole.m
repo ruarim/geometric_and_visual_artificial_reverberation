@@ -35,6 +35,7 @@ switch 'firstOrder'
         % Using one-pole filter
         [absorption.b,absorption.a] = onePoleAbsorption(targetT60(1), targetT60(end), delays + approximation, fs);
     case 'firstOrder'
+        % first order with crossover frequency
         [absorption.b,absorption.a] = firstOrderAbsorption(targetT60(1), targetT60(end), crossover_frequency, delays + approximation, fs);
 end
 

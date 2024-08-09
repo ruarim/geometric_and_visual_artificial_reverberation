@@ -7,6 +7,7 @@ from utils.signals import signal
 from utils.file import write_array_to_wav
 from ism_fdn import ISMFDN
 from utils.convolve import fft_convolution
+from utils.room import Room
 
 # create instances of config classes
 simulation_config = SimulationConfig()
@@ -31,7 +32,7 @@ one_pole_rir, fir_rir = ISMFDN(
         fs, 
         simulation_config, 
         room_config, 
-        fdn_N=-1, 
+        fdn_N=-1,
         crossover_freq_multiple=room_config.SCHRODER_MULTIIPLE,
         processing_type='parallel',
 ).process(unit_impulse)
