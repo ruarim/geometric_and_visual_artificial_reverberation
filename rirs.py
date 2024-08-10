@@ -1,3 +1,5 @@
+import numpy as np
+
 from config import SimulationConfig, RoomConfig, TestConfig, OutputConfig
 from utils.signals import signal
 from utils.file import write_array_to_wav
@@ -124,6 +126,7 @@ def rirs_config(fs):
 
 
 # create all rirs
+norm = True
 output_dir = f"{test_config.FULL_RIR_DIR}"
 fs = simulation_config.FS
 rirs = rirs_config(fs)
@@ -136,7 +139,7 @@ for rir in rirs:
     if isinstance(rir, tuple): 
         print('not signal')
         continue
-    
+        
     # output rir
     write_array_to_wav(
         output_dir, 

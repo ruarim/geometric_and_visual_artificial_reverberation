@@ -41,11 +41,14 @@ def signal(choice, signal_length=44100, fs=44100, burst_secs=0.1, gain=1.0, data
         if(channels == 1 and len(signal.shape) > 1): signal = np.array([sample[0] for sample in signal])
         # more general function fix for mono
         # if(channels != np.array(signal.shape)[1]): signal = [sample[:channels] for sample in signal] 
-    # if "pulse": return pulse with pitch/harmonic content (sine, square, tri, saw...)
+    # else:
+    #     raise ValueError('No signal type')
     
     # if len(signal) > signal_length: signal = signal[:signal_length]
-    if channels > 1: return stack(signal, channels), fs
-    else: return signal, fs
+    if channels > 1: 
+        return stack(signal, channels), fs
+    if channels == 1: 
+        return signal, fs
 
 def stack(signal, n=2):
     return np.column_stack([signal] * n)

@@ -38,7 +38,7 @@ class Network:
             self.source.add_to_junction(source_line)
             
             # connect junction to mic
-            mic_line = PropigationLine(start=self.junctions[i], end=self.mic, fs=fs, offset=-1)
+            mic_line = PropigationLine(start=self.junctions[i], end=self.mic, fs=fs)
             mic_attenuation = 1 / (1 + (mic_line.distance / source_line.distance))
             mic_line.attenuation = min(mic_attenuation, 1)
             self.mic.add_from_junction(mic_line)

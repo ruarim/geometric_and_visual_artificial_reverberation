@@ -11,6 +11,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from math import sqrt
+from pyroomacoustics.experimental.rt60 import measure_rt60
+from pyroomacoustics.acoustics import OctaveBandsFactory
 from config import RoomConfig
 
 class ReverbTime:
@@ -19,7 +21,7 @@ class ReverbTime:
         self.absorption_flat = np.array([room_config.WALL_MATERIALS_FLAT[wall] for wall in room_config.WALL_MATERIALS_FLAT])
         self.V = self.calc_V(self.room_dims)
         self.S = self.calc_A(self.room_dims)
-    
+                
     @staticmethod
     def calc_V(dims):
         """
@@ -150,3 +152,27 @@ class ReverbTime:
     # https://docs.treble.tech/Transitionfrequency 
     def transition_frequency(self, rt60, multiple=1):
         return (2000 * sqrt(rt60 / self.V)) * multiple
+    
+    @staticmethod
+    def analyse_rt60(h, fs, plot, target):
+        """
+        Using pyroomacoustics to measure system RT60
+        """
+        return measure_rt60(h, fs, plot=plot, rt60_tgt=target)
+    
+    def analyse_rt60_bands(self, h, fs):
+        """Use octave filterbank to measure rt60 a octave bands"""
+        octave_bands = OctaveBandsFactory(fs=fs)
+        bands = octave_bands.analysis(h)
+        centers = octave_bands.centers
+        
+        # predicted = self.rt60s_bands()
+        rt60s = {} 
+         
+        for i in range(len(centers)):
+            band = np.array([sample[i] for sample in bands])
+            rt60 = measure_rt60(band, fs)
+            rt60s[centers[i]] = rt60
+        
+        return rt60s
+        
