@@ -5,7 +5,7 @@ from utils.material_recognition import image_to_material
 
 MATERIALS_DIR: str = "_data/vorlander_auralization/materials.json"
 MANUAL_MATERIALS: bool = True
-ROOM_DIR: str = '_rooms'
+ROOM_DIR: str = '_rooms/small_hallway'
 ROOM_IMAGES_DIR: str = 'small_hallway_images'
 
 @dataclass
@@ -42,7 +42,6 @@ class RoomConfig:
     CHANNEL_LEVELS: tuple = (1.0, 1.0)
     DIRECT_PATH: bool = False
     ER_ORDER: int = 2
-    MODEL_PATH: str = '_rooms/small_hallway.obj'
     SCHRODER_MULTIIPLE = 2
 
 @dataclass
@@ -53,10 +52,11 @@ class TestConfig:
     FILE_NAME: str = "drums.wav"
     ER_RIR_DIR: str = "_output/early_reflections_rirs/" 
     LR_RIR_DIR: str = "_output/late_reverberation_rirs/"
-    FULL_RIR_DIR: str = "_output/full_rirs/"
+    FULL_RIR_DIR: str = "_output/rirs/"
     REAL_RIR_FILE: str = "small_hallway_rir.wav"
     PROCESSED_SAMPLES_DIR: str = '_output/processed_samples/'
     STIMULI_DIR: str = '_output/stimuli/'
+    ROOM_DIR: str = ROOM_DIR
 
 @dataclass
 class OutputConfig:

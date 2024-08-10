@@ -28,9 +28,8 @@ class ISMFDN:
         
         # TODO: inject room details from room object
         reverb_time = ReverbTime(room_config)
-        self.rt60_sabine, rt60_eyring = reverb_time.rt60s_bands(self.absorption_coeffs, self.absorption_bands, plot=True)
+        self.rt60_sabine, _ = reverb_time.rt60s_bands(self.absorption_coeffs, self.absorption_bands, plot=True)
         self.rt60_sabine_bands_500 = self.rt60_sabine[2]
-        rt60_eyring_bands_500 = rt60_eyring[2]
         self.tranistion_frequency = reverb_time.transition_frequency(self.rt60_sabine_bands_500, multiple=self.crossover_freq_multiple)
 
         # find image sources up to Nth order 

@@ -1,6 +1,6 @@
 from scipy.io.wavfile import write, read, WavFileWarning
 from datetime import datetime
-from os import path
+from os import path, makedirs
 import numpy as np
 import warnings
 import csv
@@ -25,10 +25,16 @@ def read_wav_file(data_dir: str, file_name: str):
     return fs, data
 
 def write_array_to_wav(dir: str, file_name: str, audio_data, fs, time_stamp=True):
-    # TODO: create folder if dir doesn't exist
-    if time_stamp: date_time = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+    # Create the directory if it doesn't exist
+    if isinstance(audio_data, list): 
+        audio_data = np.array(audio_data)
+        
+    if not path.exists(dir):
+        makedirs(dir)
+    
+    if time_stamp: date_time = f"{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}-"
     else: date_time = ''
-    output_file = f'{dir}{date_time}-{file_name}.wav'
+    output_file = f'{dir}{date_time}{file_name}.wav'
     write(output_file, fs, audio_data)
     
 def read_csv(path):

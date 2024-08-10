@@ -38,7 +38,7 @@ def signal(choice, signal_length=44100, fs=44100, burst_secs=0.1, gain=1.0, data
         signal, file_fs = file(data_dir, file_name)
         fs = file_fs
         # get mono
-        if(channels == 1 and len(signal.shape) > 1): signal = [sample[0] for sample in signal] 
+        if(channels == 1 and len(signal.shape) > 1): signal = np.array([sample[0] for sample in signal])
         # more general function fix for mono
         # if(channels != np.array(signal.shape)[1]): signal = [sample[:channels] for sample in signal] 
     # if "pulse": return pulse with pitch/harmonic content (sine, square, tri, saw...)

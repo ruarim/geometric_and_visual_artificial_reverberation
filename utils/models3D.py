@@ -8,7 +8,7 @@ def parse_obj_file(file_path):
         for line in file:
             if line.startswith('o '):
                 current_object = line.split()[1]
-            elif line.startswith('v ') and 'floor' not in current_object: # get vertex and ignore the floor
+            elif line.startswith('v ') and 'floor' not in current_object: # get vertex and ignore the floor (TODO: replace with object blacklist)
                 parts = line.split()
                 vertex = [float(parts[1]), float(parts[2]), float(parts[3])]
                 vertices.append(vertex)
