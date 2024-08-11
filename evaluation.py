@@ -11,6 +11,9 @@ from config import RoomConfig, TestConfig
 from utils.reverb_time import ReverbTime
 from utils.echo_density import echo_density
 
+def rms_diff():
+    pass
+
 # configs
 room_config = RoomConfig()
 test_config = TestConfig()
@@ -45,15 +48,16 @@ plot_comparison(comparison, xlim=[0, 0.1])
 
 # instead loop and add to dict 
 for rir in rirs:
-    print(rir['name'])
+    name = rir['name']
     audio = rir['rir']
     fs = rir['fs']
     rt60_bands = reverb_time.analyse_rt60_bands(audio, fs)
     rir['rt60_bands']   = rt60_bands
-    rir["echo_density"] = echo_density(audio, fs, truncate=False)
+    rir["echo_density"] = echo_density(audio, fs, truncate=True)
 
     # echo density
     plt.figure(figsize=(10, 4))
+    plt.title(f'echo density {name}')
     plt.plot(rir["echo_density"])
     
     # modal density

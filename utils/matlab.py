@@ -7,4 +7,4 @@ def init_matlab_eng():
     s = matlab_eng.genpath(r'_output')
     matlab_eng.addpath(s, nargout=0)
     matlab_eng.cd(r'late_reverberation', nargout=0)
-    return matlab_eng
+    return matlab_eng # TODO: refactor so functions that need this take it as an argument
