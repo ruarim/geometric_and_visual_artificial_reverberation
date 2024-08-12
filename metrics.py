@@ -1,15 +1,14 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from librosa import power_to_db
-from pyroomacoustics.experimental.rt60 import measure_rt60
-from pyroomacoustics.acoustics import OctaveBandsFactory
 from os import listdir
 
 from utils.signals import signal
 from utils.plot import plot_comparison, plot_signal, plot_spectrogram
 from config import RoomConfig, TestConfig
 from utils.reverb_time import ReverbTime
-from utils.echo_density import echo_density
+from evaluation.echo_density import echo_density
+from evaluation.modal_density import modal_density
 
 def rms_diff():
     pass
@@ -39,6 +38,7 @@ comparison = {}
 for rir in rirs:
     name  = rir['name']
     if name in blacklist: continue
+    
     audio = rir['rir']
     comparison[name] = audio
 
@@ -46,30 +46,28 @@ xlim = [0, 0.1]
 y_offset = 2
 plot_comparison(comparison, xlim=[0, 0.1])
 
-# instead loop and add to dict 
+# loop and add to dict 
 for rir in rirs:
-    name = rir['name']
-    audio = rir['rir']
-    fs = rir['fs']
+    name  = rir['name']
+    audio = rir['rir'] # rename h
+    fs    = rir['fs']
     rt60_bands = reverb_time.analyse_rt60_bands(audio, fs)
-    rir['rt60_bands']   = rt60_bands
-    rir["echo_density"] = echo_density(audio, fs, truncate=True)
-
-    # echo density
-    plt.figure(figsize=(10, 4))
-    plt.title(f'echo density {name}')
-    plt.plot(rir["echo_density"])
     
-    # modal density
- 
-# print(rirs[0])
-
-# energy decay curve 
+    ed = echo_density(audio, fs, truncate=True, plot=True, name=name)
+    plt.xlim([0, 0.5 * fs])
+    
+    num_modes, md, is_shroeder_min = modal_density(audio, fs, name=name, band=500, rt60=rt60_bands[500.0])
+    
+    rir['rt60_bands'] = rt60_bands
+    rir["echo_density"] = ed
+    rir["modal_density"] = md
+    rir["num_modes"] = num_modes
+    rir['is_shroeder_min'] = is_shroeder_min
+    
+# get rms diff of metrics from real rir
 
 # energy decay relief 
 
-# mode density
-
-# early decay time
+# early decay time use -10 instead of -60 in rt60 measurment
 
 plt.show()

@@ -10,7 +10,7 @@ def plot_signal(signal, title="", fs=44100, plot_time=True, xlim=None):
     if plot_time: 
         time_vec = np.arange(len(signal)) / (fs)
         plt.plot(time_vec, signal)
-        plt.xlabel('Time(ms)')
+        plt.xlabel('Time(secs)')
     else:
         plt.plot(signal) 
         plt.xlabel('Samples')
@@ -28,7 +28,7 @@ def plot_comparison(signals, title="", plot_time=True, fs=44100, xlim=None, y_of
         if plot_time:
             time_vec = np.arange(len(signal)) / (fs)
             plt.plot(time_vec, signal, label=key)
-            plt.xlabel('Time(ms)')
+            plt.xlabel('Time(secs)')
         else: 
             plt.plot(signal, label=key)
             plt.xlabel('Samples')

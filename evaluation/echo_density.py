@@ -1,7 +1,8 @@
 import numpy as np
 from utils.matlab import init_matlab_eng
+from matplotlib import pyplot as plt
 
-def echo_density(rir, fs, truncate=True):
+def echo_density(rir, fs, truncate=False, plot=False, name=''):
     # truncate to first non zero sample to remove predelay
     if truncate:
         none_zero = np.argmax(rir != 0.0)
@@ -16,5 +17,14 @@ def echo_density(rir, fs, truncate=True):
     matlab_eng.quit()
     
     ed = np.array(ed)[0]
+    
+    if plot:
+        # time_vec = np.arange(len(rir)) // (fs)
+        plt.figure(figsize=(10, 4))
+        plt.title(f'Echo Density: {name}')
+        plt.plot(rir, label='RIR')
+        plt.plot(ed, 'r.', markersize=2, label='Echo Density')
+        plt.xlabel('Samples')
+        plt.legend()
     
     return ed

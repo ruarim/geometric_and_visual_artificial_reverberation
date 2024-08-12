@@ -154,7 +154,7 @@ class ReverbTime:
         return (2000 * sqrt(rt60 / self.V)) * multiple
     
     @staticmethod
-    def analyse_rt60(h, fs, plot, target):
+    def analyse_rt60(h, fs, plot, target=None):
         """
         Using pyroomacoustics to measure system RT60
         """
