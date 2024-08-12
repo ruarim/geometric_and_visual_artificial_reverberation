@@ -80,14 +80,6 @@ def rirs_config(fs):
         fs=fs
     ).process(order=150, norm=True)
     
-    """
-    Get the real rir for reference.
-    """
-    real_rir, _ = signal(
-        'file', 
-        data_dir=test_config.ROOM_DIR, 
-        file_name=test_config.REAL_RIR_FILE,
-    )
     
     return [
         {
@@ -118,10 +110,6 @@ def rirs_config(fs):
             'name': 'Image Source Method - 150th order',
             'rir': ism,
         },
-        {
-            'name': 'Small Hallway',
-            'rir': real_rir,
-        }
     ]
 
 

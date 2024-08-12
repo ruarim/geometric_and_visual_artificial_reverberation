@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from librosa import power_to_db
 
-def modal_density(h, fs, band=-1, rt60=1, plot=True, name=''):
+def modal_density(h, fs, band=-1, rt60=1, plot=False, name=''):
     magnitude_spectrum = np.abs(np.fft.fft(h))
 
     # only consider the first half of the spectrum (positive frequencies)
