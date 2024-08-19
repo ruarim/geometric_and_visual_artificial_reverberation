@@ -53,7 +53,7 @@ class TestConfig:
     ER_RIR_DIR: str = "_output/early_reflections_rirs/" 
     LR_RIR_DIR: str = "_output/late_reverberation_rirs/"
     FULL_RIR_DIR: str = "_output/rirs/"
-    REAL_RIR_FILE: str = "small_hallway_rir.wav"
+    REAL_RIR_FILE: str = "Small Hallway RIR.wav"
     PROCESSED_SAMPLES_DIR: str = '_output/processed_samples/'
     STIMULI_DIR: str = '_output/stimuli/'
     ROOM_DIR: str = ROOM_DIR

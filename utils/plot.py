@@ -10,12 +10,12 @@ def plot_signal(signal, title="", fs=44100, plot_time=True, xlim=None):
     if plot_time: 
         time_vec = np.arange(len(signal)) / (fs)
         plt.plot(time_vec, signal)
-        plt.xlabel('Time(secs)')
+        plt.xlabel('Time (secs)')
     else:
         plt.plot(signal) 
         plt.xlabel('Samples')
     
-    plt.ylabel('Amplitude Linear')
+    plt.ylabel('Amplitude')
     if(xlim != None): plt.xlim(xlim)
     
 def plot_comparison(signals, title="", plot_time=True, fs=44100, xlim=None, y_offset=0.0):
@@ -28,13 +28,13 @@ def plot_comparison(signals, title="", plot_time=True, fs=44100, xlim=None, y_of
         if plot_time:
             time_vec = np.arange(len(signal)) / (fs)
             plt.plot(time_vec, signal, label=key)
-            plt.xlabel('Time(secs)')
+            plt.xlabel('Time (secs)')
         else: 
             plt.plot(signal, label=key)
             plt.xlabel('Samples')
         count+=1
     
-    plt.ylabel('Amplitude Linear')
+    plt.ylabel('Amplitude')
     plt.legend()
     plt.xlim(xlim)
 
@@ -44,7 +44,7 @@ def plot_frequnecy_response(y, fs, title="Frequency Spectrum (Db)"):
     plt.title(title)
     plt.plot(X[:floor(fs / 2)])
     plt.ylabel('Magnitude (Normalised dB)')
-    plt.xlabel('Frequency')
+    plt.xlabel('Frequency (Hz)')
 
 def linear_to_dB(x):
     """
@@ -58,8 +58,8 @@ def plot_spectrogram(y, sr, y_scale='linear', title="Spectrogram", xlim=None):
     fig = plt.figure(figsize=(10, 4))
     plt.title(f'{title}')
     D = librosa.amplitude_to_db(np.abs(librosa.stft(y)), ref=np.max)
-    img = librosa.display.specshow(D, y_axis=y_scale, x_axis='time', sr=sr)
-    plt.ylabel(f"Frequency {y_scale} (Hz)")
+    img = librosa.display.specshow(D, y_axis=y_scale.lower(), x_axis='time', sr=sr)
+    plt.ylabel(f"{y_scale} Frequency (Hz)")
     plt.xlabel("Time (secs)")
     plt.xlim(xlim)
     fig.colorbar(img, format="%+2.f dB")
@@ -75,7 +75,7 @@ def plot_room(room_dimensions, source_pos, mic_pos, reflections=[]):
     # Room dimensions
     room_x, room_y, room_z = room_dimensions
     
-    # Plotting the room
+    # Plotting room
     # Floor
     ax.plot([0, room_x], [0, 0], [0, 0], color='k')
     ax.plot([0, room_x], [room_y, room_y], [0, 0], color='k')
@@ -118,7 +118,7 @@ def plot_room(room_dimensions, source_pos, mic_pos, reflections=[]):
     ax.set_yticks(np.arange(0, room_y + 1, 1))
     ax.set_zticks(np.arange(0, room_z + 1, 1))
 
-    # Set aspect ratio to be equal
-    ax.set_box_aspect([room_x, room_y, room_z])  # Aspect ratio is 1:1:1
+    # Set aspect ratio
+    ax.set_box_aspect([room_x, room_y, room_z])
 
     ax.legend()

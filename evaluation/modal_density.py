@@ -58,9 +58,11 @@ def modal_density(h, fs, band=-1, rt60=1, plot=False, name=''):
     
     if plot:    
         plt.figure(figsize=(10, 4))
-        plt.title(f'Modal Density {name}: Density: {round(modal_density, 3)}, Modes: {num_peaks}, Shroeder Min Modes: {round(min_modes, 3)}')
+        plt.title(f'Modal Density {name} - Density: {round(modal_density, 3)}, Shroeder Min Modes: {round(min_modes, 3)}')
         plt.plot(frequencies, magnitude_spectrum, label='Magnitude Spectrum')
-        plt.plot(peak_freq, peak_amp, 'r.', markersize=3, label='Peaks')
+        plt.plot(peak_freq, peak_amp, 'r.', markersize=3, label=f'Modes ({num_peaks})')
+        plt.ylabel('Magnitude (Normalised dB)')
+        plt.xlabel('Frequency (Hz)')
         plt.legend()
     
     return num_peaks, modal_density, is_shroeder_min
@@ -105,5 +107,5 @@ def shroeder_min(frequnecy_resolution, num_modes, rt60):
     Schroeder's formula for minimum number of modes.
     Colorless artificial reverberation (M. R. Schroeder and B. F. Logan, 1961) 
     """
-    min_density = (0.15 * rt60 * frequnecy_resolution)
-    return  num_modes >= min_density, min_density
+    min_modes = (0.15 * rt60 * frequnecy_resolution)
+    return  num_modes >= min_modes, int(min_modes)

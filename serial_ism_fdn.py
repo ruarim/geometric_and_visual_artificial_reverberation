@@ -35,7 +35,7 @@ absorption.plots_coefficients()
 # find image sources up to Nth order 
 ism = ImageSourceMethod(room_config, fs=fs) # pass specific config values instead
 ism_er_rir = ism.process(norm=True) # rendering early reflections with pyroomacoustics ism
-image_source_coords, image_source_walls = ism.get_source_coords(show=False)
+image_source_coords, image_source_walls = ism.get_source_coords(plot=False)
 image_source_points = [Point3D(image_source) for image_source in image_source_coords]
 source_point = Point3D(room_config.SOURCE_LOC)
 mic_point = Point3D(room_config.MIC_LOC)

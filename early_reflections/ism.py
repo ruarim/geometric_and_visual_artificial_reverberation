@@ -69,7 +69,7 @@ class ImageSourceMethod:
         
         return rir
         
-    def get_source_coords(self, show=False, direct_path=False, order=0):
+    def get_source_coords(self, plot=False, direct_path=False, order=0):
         """
         Method to find image source using pyroomacoustics C++ accelerated Image Source Method algorithm.
 
@@ -92,7 +92,7 @@ class ImageSourceMethod:
             
         image_source_walls = [self._find_associated_wall(coords) for coords in image_sources]
         
-        if show:
+        if plot:
             shoebox.plot()
         
         return image_sources, image_source_walls

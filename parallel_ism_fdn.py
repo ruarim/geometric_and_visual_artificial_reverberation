@@ -4,9 +4,7 @@ import numpy as np
 from config import SimulationConfig, RoomConfig, TestConfig, OutputConfig
 from utils.plot import plot_spectrogram, plot_comparison, plot_signal
 from utils.signals import signal
-from utils.file import write_array_to_wav
 from ism_fdn import ISMFDN
-from utils.convolve import fft_convolution
 from utils.room import Room
 
 # create instances of config classes
@@ -35,37 +33,10 @@ one_pole_rir, fir_rir = ISMFDN(
         fdn_N=-1,
         crossover_freq_multiple=room_config.SCHRODER_MULTIIPLE,
         processing_type='parallel',
+        plot=True,
 ).process(unit_impulse)
 
 config_str = f'Parallel ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}'
-
-one_pole_processed_sample = fft_convolution(sample, one_pole_rir)
-fir_processed_sample = fft_convolution(sample, fir_rir)
-
-# output
-write_array_to_wav(
-        test_config.FULL_RIR_DIR, 
-        f"{config_str} One Pole", 
-        one_pole_rir, fs
-)
-write_array_to_wav(
-        test_config.FULL_RIR_DIR, 
-        f"{config_str} FIR", 
-        fir_rir, 
-        fs
-)
-write_array_to_wav(
-        test_config.PROCESSED_SAMPLES_DIR,
-        f"{config_str} {test_config.FILE_NAME} One Pole",
-        one_pole_processed_sample / np.max(one_pole_processed_sample),
-        fs
-)
-write_array_to_wav(
-        test_config.PROCESSED_SAMPLES_DIR, 
-        f"{config_str} {test_config.FILE_NAME} FIR", 
-        fir_processed_sample / np.max(fir_processed_sample), 
-        fs
-)
 
 # plot
 spec_xlim = [0, 2]

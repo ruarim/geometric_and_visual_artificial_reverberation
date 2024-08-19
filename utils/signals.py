@@ -29,7 +29,7 @@ def file(data_dir, file_name):
     return data, fs
 
 # return fs depenant on signal type 
-def signal(choice, signal_length=44100, fs=44100, burst_secs=0.1, gain=1.0, data_dir="", file_name="", channels=1):
+def signal(choice, signal_length=44100, fs=44100, burst_secs=0.1, gain=1.0, data_dir="", file_name="", channels=1, padding=0):
     if choice == "unit":
         signal = unit_impulse(signal_length, gain)
     if choice == "noise":
@@ -45,6 +45,7 @@ def signal(choice, signal_length=44100, fs=44100, burst_secs=0.1, gain=1.0, data
     #     raise ValueError('No signal type')
     
     # if len(signal) > signal_length: signal = signal[:signal_length]
+    if padding > 0: np.concatenate((signal, np.zeros(int(padding * fs))))
     if channels > 1: 
         return stack(signal, channels), fs
     if channels == 1: 

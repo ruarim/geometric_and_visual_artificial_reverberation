@@ -25,6 +25,7 @@ def rirs_config(fs):
         file_name=test_config.FILE_NAME,
     )
     
+    fdn_N_delays = 16
     """
     Process RIR:
     (early reflection) ism tapped delay line 
@@ -35,8 +36,10 @@ def rirs_config(fs):
         simulation_config, 
         room_config, 
         fdn_N=-1, 
-        processing_type='parallel'
-    ).process(unit_impulse)
+        processing_type='parallel',
+    )
+    fdn_ism_N = len(ism_fdn_all_delays.fdn_delay_times)
+    ism_fdn_all_delays = ism_fdn_all_delays.process(unit_impulse)
     
     """
     Process RIR:
@@ -47,7 +50,7 @@ def rirs_config(fs):
         fs, 
         simulation_config, 
         room_config, 
-        fdn_N=16, 
+        fdn_N=fdn_N_delays, 
         processing_type='parallel'
     ).process(unit_impulse)
 
@@ -59,7 +62,7 @@ def rirs_config(fs):
         fs, 
         simulation_config,
         room_config, 
-        fdn_N=16, 
+        fdn_N=fdn_N_delays, 
         processing_type='fdn_only'
     ).process(unit_impulse)
 
@@ -78,28 +81,28 @@ def rirs_config(fs):
     ism = ImageSourceMethod(
         room_config,
         fs=fs
-    ).process(order=150, norm=True)
+    ).process(order=200, norm=True)
     
     
     return [
         {
-            'name': "ISMFDN Parallel - all ISM delays - one pole",
+            'name': f"ISMFDN, One-pole, N={fdn_ism_N}",
             'rir': ism_fdn_all_delays[0],
         },
         {
-            'name': "ISMFDN Parallel - all ISM delays - fir",
+            'name': f"ISMFDN, FIR, N={fdn_ism_N}",
             'rir': ism_fdn_all_delays[1],
         },
         {
-            'name': "ISMFDN Parallel - 16 ISM delays - one pole",
+            'name': f"ISMFDN, One-pole, N={fdn_N_delays}",
             'rir': ism_fdn_N_delays[0],
         },
         {
-            'name': "ISMFDN Parallel - 16 ISM delays - fir",
+            'name': f"ISMFDN, FIR, N={fdn_N_delays}",
             'rir': ism_fdn_N_delays[1],
         },
         {
-            'name': "Hadamard FDN - 16 ISM delays - one pole",
+            'name': f"Hadamard FDN, One-pole, N={fdn_N_delays}",
             'rir': ism_fdn_hadamard,
         },
         {
@@ -107,7 +110,7 @@ def rirs_config(fs):
             'rir': sdn,
         },
         {
-            'name': 'Image Source Method - 150th order',
+            'name': 'ISM, Order=200',
             'rir': ism,
         },
     ]

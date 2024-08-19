@@ -32,16 +32,16 @@ class Absorption:
         plt.xscale('log')
         plt.xticks(self.freq_bands, labels=[str(band) for band in self.freq_bands])
 
-        plt.xlabel('Bands')
+        plt.xlabel('Log Frequency Bands (Hz)')
         plt.ylabel('Absorption Coefficient')
         plt.title('Plot of Material Absorption Coefficients vs. Bands')
         
         # air
-        plt.plot(self.freq_bands, self.air_absorption, label=f"Air - {self.temp_humidity}")
+        plt.plot(self.freq_bands, self.air_absorption, label=f"Air - {self.temp_humidity}", marker='o')
         
         # walls
         for coefficients, wall in zip(self.coefficients, self.walls_material):
-            plt.plot(self.freq_bands, coefficients, label=f"{wall} - {self.walls_material[wall]}")
+            plt.plot(self.freq_bands, coefficients, label=f"{wall} - {self.walls_material[wall]}", marker='o')
         
         plt.legend()
                     

@@ -25,13 +25,31 @@ anechoic_files = [file for file in anechoic_files if file.endswith('.wav')]
 stimuli_dir = test_config.STIMULI_DIR
 rir_dir = test_config.FULL_RIR_DIR
 
+
 _, prev_fs = signal(
     "file", 
     data_dir=samples_dir, 
     file_name=anechoic_files[0]
 )
 
-rirs = rirs_config(prev_fs)
+def get_rirs(fs):
+    # get the real room impulse response for reference.
+    real_rir_file = test_config.REAL_RIR_FILE
+    real_rir, real_fs  = signal(
+            'file', 
+            data_dir=test_config.ROOM_DIR, 
+            file_name=real_rir_file,
+    )
+    
+    rirs = rirs_config(fs)
+    rirs.append({
+        'name': "Small Hallway",
+        'rir': real_rir,
+    })
+
+rirs = get_rirs(prev_fs)
+
+# add the real rir
 
 # generate RIR and apply to target audio
 for file in anechoic_files:
@@ -39,11 +57,12 @@ for file in anechoic_files:
         'file', 
         data_dir=samples_dir, 
         file_name=file,
+        padding=0.5
     )
     
     # recompute rirs if sampling rate changes
     if(fs != prev_fs):
-        rirs = rirs_config(fs)
+        rirs = get_rirs(fs)
     
     file_name = file[:len(file)-4]
     # for audio files
@@ -51,7 +70,7 @@ for file in anechoic_files:
         name = rir['name']
         rir  = rir['rir']
 
-        if isinstance(rir, tuple): 
+        if isinstance(rir, tuple):
             print('not signal')
             continue
                         

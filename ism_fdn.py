@@ -11,9 +11,10 @@ from utils.absorption import Absorption
 from utils.filters import tone_correction
 from utils.primes import find_closest_primes, is_mutually_prime
 from utils.delay import delay_array
+from utils.plot import plot_comparison
 
 class ISMFDN:
-    def __init__(self, fs: float, simulation_config: SimulationConfig, room_config: RoomConfig, fdn_N=-1, crossover_freq_multiple=4, processing_type='parallel'):
+    def __init__(self, fs: float, simulation_config: SimulationConfig, room_config: RoomConfig, fdn_N=-1, crossover_freq_multiple=4, processing_type='parallel', plot=False):
         self.fs = fs
         self.fdn_N = fdn_N # TODO: From config
         self.crossover_freq_multiple = crossover_freq_multiple
@@ -24,18 +25,19 @@ class ISMFDN:
             
         self.absorption_coeffs = self.absorption.coefficients + self.absorption.air_absorption
         self.absorption_bands = self.absorption.freq_bands
-        self.absorption.plots_coefficients()
+        self.plot = plot
+        if self.plot: self.absorption.plots_coefficients()
         
         # TODO: inject room details from room object
         reverb_time = ReverbTime(room_config)
-        self.rt60_sabine, _ = reverb_time.rt60s_bands(self.absorption_coeffs, self.absorption_bands, plot=True)
+        self.rt60_sabine, _ = reverb_time.rt60s_bands(self.absorption_coeffs, self.absorption_bands, plot=plot)
         self.rt60_sabine_bands_500 = self.rt60_sabine[2]
         self.tranistion_frequency = reverb_time.transition_frequency(self.rt60_sabine_bands_500, multiple=self.crossover_freq_multiple)
 
         # find image sources up to Nth order 
         ism = ImageSourceMethod(room_config, fs=self.fs) # pass specific config values instead
         ism_er_rir = ism.process(norm=True) # rendering early reflections with pyroomacoustics ism
-        image_source_coords, image_source_walls = ism.get_source_coords(show=False)
+        image_source_coords, image_source_walls = ism.get_source_coords(plot=plot)
         image_source_points = [Point3D(image_source) for image_source in image_source_coords]
         source_point = Point3D(room_config.SOURCE_LOC)
         mic_point = Point3D(room_config.MIC_LOC)
@@ -138,8 +140,15 @@ class ISMFDN:
 
         # end matlab process
         matlab_eng.quit()
+        
+        if self.plot:
+            er_lr_compare = {
+                'Late Reflections': lr_fir,
+                'Early Reflections': er_tdl,
+                'Direct Sound': direct_sound,
+            }
+            plot_comparison(er_lr_compare, title='Room Impulse Response', xlim=[0, 0.3])
 
-        # TODO: return dict with name for plotting 
         return rir_one_pole, rir_fir
           
     def process_serial(self, x, y):

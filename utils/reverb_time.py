@@ -137,17 +137,18 @@ class ReverbTime:
         Plot the coefficents at frequnecy bands for each wall
         """
         plt.figure(figsize=(10, 4))
-        plt.xscale('log')
-        plt.xticks(bands, labels=[str(band) for band in bands])
+        plt.yscale('log')
+        plt.yticks(bands, labels=[str(band) for band in bands])
 
-        plt.xlabel('Bands')
-        plt.ylabel('Reverb Time (-60dB secs)')
+        plt.ylabel('Log Frequnecy Bands (Hz)')
+        plt.xlabel('Reverb Time -60dB (secs)')
         plt.title('Predicted Reverb Time at Frequency Bands')
         
         for rt60_type in rt60s:
-            plt.plot(bands, rt60s[rt60_type], label=rt60_type)
+            plt.plot(rt60s[rt60_type], bands, label=rt60_type,  marker='o')
         
         plt.legend()
+        plt.show()
        
     # https://docs.treble.tech/Transitionfrequency 
     def transition_frequency(self, rt60, multiple=1):
