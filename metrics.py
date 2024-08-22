@@ -42,13 +42,13 @@ def plot_bar_chart(metric, metric_name, title):
               'lightgray' 
               for name in names]
     
-    plt.figure(figsize=(10, 6))
-    bars = plt.bar(range(len(names)), values, color=colors)
+    plt.figure(figsize=(8, 4))
+    bars = plt.bar(range(len(names)), norm_values, color=colors)
 
     plt.ylabel(f'Model Performance (1 = Best)')
     plt.title(f'{title}')
     
-    plt.xticks(range(len(names)), [textwrap.fill(name, width=20) for name in names], rotation=45, ha='right')
+    plt.xticks(range(len(names)), [textwrap.fill(name, width=10) for name in names], rotation=0, ha='center')
     
     # Adjust plot layout to make room for the rotated labels
     plt.tight_layout()
@@ -71,39 +71,45 @@ def get_rirs_for_evaluation(test_config: TestConfig):
     
     return rirs
 
-def evaluate(fs, h, name, matlab_eng, real_evaluation=None):
+def evaluate(fs, h, name, matlab_eng, real_evaluation=None, octave_band = 4000.0):
     rt60_bands_sabine, _ = reverb_time.rt60s_bands(
         absorption.coefficients + absorption.air_absorption,
         absorption.freq_bands,
     )
     rt60_bands = reverb_time.analyse_rt60_bands(h, fs)
     
+    
+    rt60_total = reverb_time.analyse_rt60(h, fs, plot=False)
+    
     ed, t_mix = echo_density(
         h,
         fs, 
         matlab_eng,
         truncate_start=False, 
-        plot=True,
+        plot=False,
         name=name,
         ref_ed=real_evaluation['echo_density'] if real_evaluation != None else [],
         ref_tmix=real_evaluation['t_mix'] if real_evaluation != None else 0,
     )
     
+    
     num_modes, md, is_shroeder_min = modal_density(
         h, 
         fs, 
         name=name, 
-        band=500, 
-        rt60=rt60_bands[500.0],
+        band=int(octave_band), 
+        rt60=rt60_bands[octave_band],
+        plot=False,
     )
     
     return {
         'rt60_bands': rt60_bands,
         'rt60_bands_theory': rt60_bands_sabine,
+        'RT60': rt60_total,
         'echo_density': ed,
         't_mix': t_mix,
-        'Modal Density 500 Hz': md,
-        'Total Modes 500 Hz': num_modes,
+        f'Modal Density {int(octave_band)} Hz': md,
+        f'Total Modes {int(octave_band)} Hz': num_modes,
         'is_shroeder_min': is_shroeder_min,
     }
     
@@ -123,11 +129,13 @@ real_rir = {
     "fs": real_fs,
 }
 
+octave_band = 1000.0
 real_rir['evaluation'] = evaluate(
     real_rir['fs'], 
     real_rir['rir'], 
     'Small Hallway',
     matlab_eng,
+    octave_band=octave_band,
 )
 real_rir_eval = real_rir['evaluation']
     
@@ -159,7 +167,14 @@ for rir in rirs:
     fs = rir['fs']
     rt60_bands = reverb_time.analyse_rt60_bands(h, fs)
     
-    rir['evaluation'] = evaluate(fs, h, name, matlab_eng, real_evaluation=real_rir_eval)
+    rir['evaluation'] = evaluate(
+        fs, 
+        h, 
+        name, 
+        matlab_eng, 
+        real_evaluation=real_rir_eval,
+        octave_band=octave_band,
+    )
     
 # get rms diff of metrics from real rir
 
@@ -168,60 +183,54 @@ for rir in rirs:
 # early decay time use -10 instead of -60 in rt60 measurment
 
 # find rms difference between real rir and synthesised metrics.
-rms_diffs = {}
-
+model_performance = {}
+modal_density_band = 4000.0
 for rir in rirs:
     rir_name = rir['name']
     rir_eval = rir['evaluation']
    
-    # number of modes
-    rmsd_num_modes = rms_diff(
-        rir_eval['Total Modes 500 Hz'], 
-        real_rir_eval['Total Modes 500 Hz'],
-    )
-    if 'Total Modes 500 Hz' not in rms_diffs:
-        rms_diffs['Total Modes 500 Hz'] = {}
-    rms_diffs['Total Modes 500 Hz'][rir_name] = rmsd_num_modes
+    # # number of modes
+    # rmsd_num_modes = rms_diff(
+    #     rir_eval['Total Modes 500 Hz'], 
+    #     real_rir_eval['Total Modes 500 Hz'],
+    # )
+    # if 'Total Modes 500 Hz' not in rms_diffs:
+    #     rms_diffs['Total Modes 500 Hz'] = {}
+    # rms_diffs['Total Modes 500 Hz'][rir_name] = rmsd_num_modes
 
     # modal density
-    rmsd_md = rms_diff(
-        rir_eval['Modal Density 500 Hz'], 
-        real_rir_eval['Modal Density 500 Hz'],
+    modal_density_key = f'Modal Density {int(octave_band)} Hz'
+   
+    rmsd_md = np.abs(rir_eval[modal_density_key] - real_rir_eval[modal_density_key])
+    if modal_density_key not in model_performance:
+        model_performance[modal_density_key] = {}
+    model_performance[modal_density_key][rir_name] = rmsd_md
+        
+    rmsd_rt60_band = np.abs(rir_eval['rt60_bands'][octave_band] - real_rir_eval['rt60_bands'][octave_band])
+        
+    rt60_f_key = f'RT60 {int(octave_band)}Hz'
+    if rt60_f_key not in model_performance:
+        model_performance[rt60_f_key] = {}
+    model_performance[rt60_f_key][rir_name] = rmsd_rt60_band
+    rt60f_diff = rms_diff(
+        np.array(list(rir_eval['rt60_bands'].values())), 
+        np.array(list(real_rir_eval['rt60_bands'].values())),
     )
-    if 'Modal Density 500 Hz' not in rms_diffs:
-        rms_diffs['Modal Density 500 Hz'] = {}
-    rms_diffs['Modal Density 500 Hz'][rir_name] = rmsd_md
+    if 'RT60f' not in model_performance:
+        model_performance['RT60f'] = {}
+    model_performance['RT60f'][rir_name] = rt60f_diff
     
-    # RT60 at 500 Hz -  TODO: Use RT60 on the whole RIR instead
-    rmsd_rt60_500Hz = rms_diff(
-        rir_eval['rt60_bands'][500.0], 
-        real_rir_eval['rt60_bands'][500.0],
-    )
-    if 'RT60 500Hz' not in rms_diffs:
-        rms_diffs['RT60 500Hz'] = {}
-    rms_diffs['RT60 500Hz'][rir_name] = rmsd_rt60_500Hz
-    
-    rt60f_diffs = []
-    for rt60f_pred, rt60f_real in zip(rir_eval['rt60_bands'].values(), real_rir_eval['rt60_bands'].values()):
-        rt60f_diff = rms_diff(
-            rt60f_pred, 
-            rt60f_real
-        )
-        rt60f_diffs.append(rt60f_diff)
-    rt60f_mean_diff = sum(rt60f_diffs) / len(rt60f_diffs)
-    
-    if 'rt60_f' not in rms_diffs:
-        rms_diffs['rt60_f'] = {}
-    rms_diffs['rt60_f'][rir_name] = rt60f_mean_diff
+    rt60_diff = np.abs(rir_eval['RT60'] - real_rir_eval['RT60'])
+    if 'RT60' not in model_performance:
+        model_performance['RT60'] = {}
+    model_performance['RT60'][rir_name] = rt60_diff
     
     # Mixing Time
-    rmsd_t_mix = rms_diff(
-        rir_eval['t_mix'], 
-        real_rir_eval['t_mix'],
-    )
-    if 't_mix' not in rms_diffs:
-        rms_diffs['t_mix'] = {}
-    rms_diffs['t_mix'][rir_name] = rmsd_t_mix
+    rmsd_t_mix = np.abs(rir_eval['t_mix'] - real_rir_eval['t_mix'])
+
+    if 't_mix' not in model_performance:
+        model_performance['t_mix'] = {}
+    model_performance['t_mix'][rir_name] = rmsd_t_mix
     
     rir['evaluation']['t_mix_diff'] = rmsd_t_mix
         
@@ -233,8 +242,8 @@ for rir in rirs:
     #     for rir in rms_diffs[metric].values():
     #         diffs.append()
                     
-for metric in rms_diffs:
-    plot_bar_chart(rms_diffs[metric], metric, f'{metric}')
+for metric in model_performance:
+    plot_bar_chart(model_performance[metric], metric, f'{metric}')
 
 rirs.append(real_rir)
 
@@ -263,18 +272,12 @@ for rir in rirs:
 mixing_times_indices = np.concatenate(([0], [int(0.025 * fs)], mixing_times_indices, [int(0.125 * fs)]))
 mixing_times_indices = np.sort(mixing_times_indices)
 
-# time_diffs = np.diff(mixing_times_indices)
-# normalised_diffs = 1 - (time_diffs / max(time_diffs))
-# print(normalised_diffs)
-
 colours = plt.cm.tab10(range(len(rirs)))
 plt.figure(figsize=(10, 4)) 
-plt.title('Early Echo Density')
+plt.title('Echo Density / Mixing Time')
 time_vec = np.arange(len(real_rir['rir'])) / fs
-# plt.plot(time_vec, real_rir['rir'], color='gray', label='Small Hallway RIR')
 
-# Add horizontal line at 1
-plt.axhline(y=1.0, color='black', linestyle='-', linewidth=1.5, label='Mixing Threshold')
+plt.axhline(y=1.0, color='black', linestyle='-', linewidth=1.5, label='Mixing Threshold', zorder=10)
 
 for rir, colour in zip(rirs, colours):
     h = rir['rir']
@@ -291,21 +294,22 @@ for rir, colour in zip(rirs, colours):
     plt.plot(mixing_times_indices / fs, ed, marker='o', label=f'{name}', color=colour)
 
     max_width = 10
-    min_width = 0.5
+    min_width = 1
+    height_scaling = 0.8
     # Adjust the height of the vertical line based RMS difference
     if 't_mix_diff' in evaluation:
         t_mix_diff = evaluation['t_mix_diff']
         diff_norm = (max_t_mix_rms_diff - t_mix_diff) / (max_t_mix_rms_diff - min_t_mix_rms_diff)
         line_width = min_width + (diff_norm) * (max_width - min_width)
-
-        plt.axvline(x=t_mix_sec, ymin=0, ymax=diff_norm - 0.125, color=colour, linestyle='-', linewidth=line_width, zorder=1)
+        if diff_norm == 0.0: diff_norm = 0.1
+        plt.axvline(x=t_mix_sec, ymin=0, ymax=diff_norm * height_scaling, color=colour, linestyle='-', linewidth=line_width, zorder=1)
     else:
-        plt.axvline(x=t_mix_sec, ymin=0, ymax=1 - 0.125, color=colour, linestyle='-', linewidth=max_width, zorder=1)
+        plt.axvline(x=t_mix_sec, ymin=0, ymax=1 * height_scaling, color=colour, linestyle='-', linewidth=max_width, zorder=1)
 
 plot_times = mixing_times_indices / fs
 
 # Set labels and ticks
-plt.ylabel('Echo Density')
+plt.ylabel('Echo Density / Performance')
 plt.xlabel('Time (secs)')
 plt.xticks(plot_times, [f'{pt:.3f}' for pt in plot_times], rotation=45)
 plt.xlim([mixing_times_indices[0] / fs, mixing_times_indices[-1] / fs])

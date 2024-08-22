@@ -17,3 +17,13 @@ Install the following Python packages using `pip`:
 ```bash
 pip install numpy scipy pyroomacoustics matlabengine matplotlib librosa sympy openai
 ```
+
+### Documentation
+
+- Configure config.py with paths for surface images and 3D model in .obj format.
+- Test geometry recognition via: `python3 model.py`
+- Test material extraction via: `python3 absorption.py`
+- Create RIRs with all models via: `python3 rir.py`
+- Create proccessed samples with all models via: `python3 stimuli.py`
+- Run Parallel ISMFDN via: `python3 parallel_ism_fdn.py`
+- Run Serial ISMFDN via: `python3 serial_ism_fdn.py`

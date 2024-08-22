@@ -72,9 +72,9 @@ class EarlyReflections:
         return [self._make_filter(self.wall_center_freqs, self.wall_absorption_bands[wall], nyquist, self.fir_type) for wall in self.image_source_walls]
    
     @staticmethod
-    def _make_filter(freqs, gains, nyquist, fir_type):
-        if fir_type == "I": fir, fir_min = fir_type_1(freqs, 1 - np.array(gains), nyquist)
-        if fir_type == "II": fir, fir_min = fir_type_2(freqs, 1 - np.array(gains), nyquist)
+    def _make_filter(freqs, coefficients, nyquist, fir_type):
+        if fir_type == "I": fir, fir_min = fir_type_1(freqs, 1 - np.array(coefficients), nyquist)
+        if fir_type == "II": fir, fir_min = fir_type_2(freqs, 1 - np.array(coefficients), nyquist)
         return fir_min
     
     def _point_to_delay_time(self, mic, point):

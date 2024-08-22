@@ -58,7 +58,7 @@ def modal_density(h, fs, band=-1, rt60=1, plot=False, name=''):
     
     if plot:    
         plt.figure(figsize=(10, 4))
-        plt.title(f'Modal Density {name} - Density: {round(modal_density, 3)}, Shroeder Min Modes: {round(min_modes, 3)}')
+        plt.title(f'Spectral Peak Picking {name}')
         plt.plot(frequencies, magnitude_spectrum, label='Magnitude Spectrum')
         plt.plot(peak_freq, peak_amp, 'r.', markersize=3, label=f'Modes ({num_peaks})')
         plt.ylabel('Magnitude (Normalised dB)')

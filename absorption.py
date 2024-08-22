@@ -32,9 +32,11 @@ x, fs = signal('noise', burst_secs=0.5)
 
 # get alpha from absorption coeffs
 wall_alphas = 1 - wall_coefficients
-plot_fir(x, freqs, wall_alphas, fs, db=True, title='Wall absorption')
+plot_fir(x, freqs, wall_alphas, fs, db=True, title='Wall Absorption')
 
 wall_air_alphas = 1 - wall_air_coefficients
-plot_fir(x, freqs, wall_air_alphas, fs, db=True, title='Wall and air absorption')
+plot_fir(x, freqs, wall_air_alphas, fs, db=True, title='Wall and Air Absorption')
+plt.ylim([-5, 0])
+plt.xlim([50, int(fs/2)])
 
 plt.show()
