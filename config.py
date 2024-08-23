@@ -7,6 +7,7 @@ MATERIALS_DIR: str = "_data/vorlander_auralization/materials.json"
 MANUAL_MATERIALS: bool = True
 ROOM_DIR: str = '_rooms/small_hallway'
 ROOM_IMAGES_DIR: str = 'small_hallway_images'
+MODEL_PATH = f'{ROOM_DIR}/small_hallway.obj'
 
 @dataclass
 class SimulationConfig:
@@ -36,13 +37,14 @@ class RoomConfig:
     })
     MATERIALS_DIR: str = MATERIALS_DIR
     WALL_MATERIALS_TYPE: str = 'image' # TODO
-    ROOM_DIMS: tuple = field(default_factory=lambda: get_room_dims(f'{ROOM_DIR}/small_hallway.obj'))
+    ROOM_DIMS: tuple = field(default_factory=lambda: get_room_dims(MODEL_PATH))
     SOURCE_LOC: tuple = (0.5, 1.03,  1.25) # length, width, height
     MIC_LOC: tuple = (2.2, 1.02, 1.35)
     CHANNEL_LEVELS: tuple = (1.0, 1.0)
     DIRECT_PATH: bool = False
     ER_ORDER: int = 2
     SCHRODER_MULTIIPLE = 2
+    MODEL_PATH: str = MODEL_PATH
 
 @dataclass
 class TestConfig:

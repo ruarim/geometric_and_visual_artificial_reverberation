@@ -6,6 +6,7 @@ from utils.plot import plot_spectrogram, plot_comparison, plot_signal
 from utils.signals import signal
 from ism_fdn import ISMFDN
 from utils.room import Room
+from utils.convolve import fft_convolution
 
 # create instances of config classes
 simulation_config = SimulationConfig()
@@ -20,6 +21,7 @@ sample, fs = signal(
         file_name=test_config.FILE_NAME,
 )
 
+# take an impulse response for faster processing
 unit_impulse, _ = signal(
         'unit', 
         simulation_config.SIGNAL_LENGTH, 
@@ -38,7 +40,10 @@ one_pole_rir, fir_rir = ISMFDN(
 
 config_str = f'Parallel ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}'
 
-# plot
+# apply reverb via fft convolution
+output = fft_convolution(sample, fir_rir, norm=True)
+
+# plot the results
 spec_xlim = [0, 2]
 wave_xlim = [0, 0.5]
 compare = {
