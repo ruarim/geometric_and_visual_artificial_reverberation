@@ -16,7 +16,7 @@ class StandardFDN:
         absorption_bands = absorption.freq_bands
 
         reverb_time = ReverbTime(room_config)
-        self.rt60_sabine, _ = reverb_time.rt60s_bands(absorption_coeffs, absorption_bands)
+        self.rt60_sabine, _ = reverb_time.theory_rt60s_bands(absorption_coeffs, absorption_bands)
 
         # log distributed mutual primes from paper (Feedback Delay Network Optimization G. D. Santo et al. 2024)
         self.fdn_delay_times = np.array([809, 877, 937, 1049, 1151, 1249, 1373, 1499])

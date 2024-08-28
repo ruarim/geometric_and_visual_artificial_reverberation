@@ -18,8 +18,8 @@ absorption = Absorption(room_config.WALL_MATERIALS, room_config.MATERIALS_DIR, s
 absorption.plots_coefficients()
 
 reverb_time = ReverbTime(room_config)
-rt60_sabine, rt60_eyring = reverb_time.rt60s()
-rt60_sabine_bands, rt60_eyring_bands = reverb_time.rt60s_bands(absorption.coefficients, absorption.freq_bands, plot=True)
+rt60_sabine, rt60_eyring = reverb_time.theory_rt60s()
+rt60_sabine_bands, rt60_eyring_bands = reverb_time.theory_rt60s_bands(absorption.coefficients, absorption.freq_bands, plot=True)
 
 # frequency bands and attenuation values
 freqs = absorption.freq_bands

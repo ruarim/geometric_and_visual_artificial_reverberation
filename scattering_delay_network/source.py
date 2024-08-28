@@ -1,4 +1,4 @@
-# contains delay from course to junctions and microphone
+# contains delay from source to junctions and microphone
 from utils.point3D import Point3D
 from .propigation_line import PropigationLine
 

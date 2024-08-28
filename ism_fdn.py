@@ -30,7 +30,7 @@ class ISMFDN:
         
         # TODO: inject room details from room object
         reverb_time = ReverbTime(room_config)
-        self.rt60_sabine, _ = reverb_time.rt60s_bands(self.absorption_coeffs, self.absorption_bands, plot=plot)
+        self.rt60_sabine, _ = reverb_time.theory_rt60s_bands(self.absorption_coeffs, self.absorption_bands, plot=plot)
         self.rt60_sabine_bands_500 = self.rt60_sabine[2]
         self.tranistion_frequency = reverb_time.transition_frequency(self.rt60_sabine_bands_500, multiple=self.crossover_freq_multiple)
 
@@ -95,6 +95,7 @@ class ISMFDN:
     def process(self, x, type=None):
         y = np.zeros_like(x)
         if type == None: type = self.processing_type
+        
         print(f'ISMFDN: Processing {type}...')
         
         if type == 'serial': return self.process_serial(x, y)
@@ -191,6 +192,7 @@ class ISMFDN:
             self.tranistion_frequency, 
             self.matrix_type
         )
+        
         lr_one_pole_multi = matlab_eng.velvet_fdn_one_pole(
             self.fs, 
             er_signal_multi * self.fdn_scaling_factor, 
@@ -200,6 +202,7 @@ class ISMFDN:
             self.tranistion_frequency, 
             self.matrix_type
         )
+        
         lr_fir = matlab_eng.velvet_fdn_fir(
             self.fs, 
             er_tdl * self.fdn_scaling_factor, 

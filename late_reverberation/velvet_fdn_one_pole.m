@@ -1,11 +1,11 @@
 % Velvet FDN where the stucture is inverted such that the output of
 % taken from the mixing matrix instead of the delay lines.
-function [rir] = velvet_fdn_one_pole(fs, er_signal, delay_times, rt60s, rt60_bands, crossover_frequency, matrix_type)
+function [output] = velvet_fdn_one_pole(fs, input, delay_times, rt60s, rt60_bands, crossover_frequency, matrix_type)
 fs = double(fs);
 
 % Define FDN
 N = size(delay_times, 2);
-numFDNInput = size(er_signal, 1);
+numFDNInput = size(input, 1);
 numFDNOutput = 1;
 inputGain = ones(N,numFDNInput);
 outputGain = ones(numFDNInput, N);
@@ -13,7 +13,7 @@ direct = zeros(numFDNOutput,numFDNInput);
 delays = double(delay_times);
 
 % input signal
-x = transpose_row_2_col(er_signal);
+x = transpose_row_2_col(input);
 x = x(:,1:numFDNInput);
 
 numberOfStages = 2;
@@ -44,6 +44,6 @@ zAbsorption = zTF(absorption.b, absorption.a,'isDiagonal', true);
 output_transposed = processTransposedFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct, 'absorptionFilters', zAbsorption);
 % lossless_output_transposed = processTransposedFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct);
 
-rir = output_transposed;
+output = output_transposed;
 
 end

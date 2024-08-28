@@ -111,13 +111,13 @@ class ReverbTime:
         floor_ceiling = L * W 
         return np.array([north_south, north_south, east_west, east_west, floor_ceiling, floor_ceiling])
            
-    def rt60s(self):        
+    def theory_rt60s(self):        
         sabine = self.sabine_rt60(self.V, self.S, self.absorption_flat)
         eyring = self.eyring_rt60(self.V, self.S, self.absorption_flat)
 
         return sabine, eyring
     
-    def rt60s_bands(self, alphas: list[list], bands: list[float], plot=False):
+    def theory_rt60s_bands(self, alphas: list[list], bands: list[float], plot=False):
         # wall surface areas
         sabine_bands = np.array([self.sabine_rt60(self.V, self.S, alphas[:, i]) for i in range(len(alphas[0]))])
         eyring_bands = np.array([self.eyring_rt60(self.V, self.S, alphas[:, i]) for i in range(len(alphas[0]))])
@@ -167,7 +167,6 @@ class ReverbTime:
         bands = octave_bands.analysis(h)
         centers = octave_bands.centers
         
-        # predicted = self.rt60s_bands()
         rt60s = {} 
          
         for i in range(len(centers)):

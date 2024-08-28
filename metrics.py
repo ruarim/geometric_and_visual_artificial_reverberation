@@ -72,7 +72,7 @@ def get_rirs_for_evaluation(test_config: TestConfig):
     return rirs
 
 def evaluate(fs, h, name, matlab_eng, real_evaluation=None, octave_band = 4000.0):
-    rt60_bands_sabine, _ = reverb_time.rt60s_bands(
+    rt60_bands_sabine, _ = reverb_time.theory_rt60s_bands(
         absorption.coefficients + absorption.air_absorption,
         absorption.freq_bands,
     )

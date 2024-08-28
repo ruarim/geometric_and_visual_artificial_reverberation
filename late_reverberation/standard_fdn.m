@@ -1,4 +1,4 @@
-function [rir] = standard_fdn(fs, input, delay_times, rt60s)
+function [output] = standard_fdn(fs, input, delay_times, rt60s)
 fs = double(fs);
 
 x = transpose_row_2_col(input);
@@ -17,10 +17,6 @@ delays = double(delay_times);
 targetT60 = transpose_row_2_col(rt60s);
 
 [feedbackMatrix, isLossless] = fdnMatrixGallery(N, "Hadamard");
-% [feedbackMatrix, revFeedbackMatrix] = randomMatrixShift(maxShift, feedbackMatrix, revFeedbackMatrix );
-
-% absorption filters including delay of scattering matrix
-% [approximation,approximationError] = matrixDelayApproximation(feedbackMatrix);
 
 RT_DC = targetT60(1);
 RT_NY = targetT60(end);
@@ -30,6 +26,6 @@ zAbsorption = zTF(absorption.b, absorption.a,'isDiagonal', true);
 
 output_transposed = processFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct, 'absorptionFilters', zAbsorption);
 
-rir = output_transposed;
+output = output_transposed;
 
 end

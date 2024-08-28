@@ -24,7 +24,7 @@ class Room:
         absorption = Absorption(room_config.WALL_MATERIALS, room_config.MATERIALS_DIR, self.fs)
 
         reverb_time = ReverbTime(room_config)
-        self.rt60_sabine_bands, self.rt60_eyring_bands = reverb_time.rt60s_bands(absorption.coefficients, absorption.freq_bands, plot=plot)
+        self.rt60_sabine_bands, self.rt60_eyring_bands = reverb_time.theory_rt60s_bands(absorption.coefficients, absorption.freq_bands, plot=plot)
 
         # frequency bands and attenuation values
         self.center_freqs = absorption.freq_bands
