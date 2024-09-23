@@ -12,10 +12,10 @@ This project focuses on creating artificial reverberation using geometric and im
 
 #### Python Dependencies
 
-Install the following Python packages using `pip`:
+Install the following Python packages using `pip3`:
 
 ```bash
-pip install numpy scipy pyroomacoustics matlabengine matplotlib librosa sympy openai
+pip3 install numpy scipy pyroomacoustics matlabengine matplotlib librosa sympy openai
 ```
 
 ### Documentation

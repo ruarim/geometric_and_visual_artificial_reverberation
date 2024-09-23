@@ -17,10 +17,10 @@ def modal_density(h, fs, band=-1, rt60=1, plot=False, name=''):
         lower_bound = band / np.sqrt(2)
         upper_bound = band * np.sqrt(2)
         
-        # filter frequencies for the 500 Hz octave band
+        # get frequencies for the 500 Hz octave band
         band_indices = np.where((frequencies >= lower_bound) & (frequencies <= upper_bound))
 
-        # filtered frequency and magnitude spectrum
+        # frequency and magnitude spectrum
         frequencies = frequencies[band_indices]
         magnitude_spectrum = magnitude_spectrum[band_indices]
        

@@ -30,7 +30,7 @@ class ISMFDN:
         
         # TODO: inject room details from room object
         reverb_time = ReverbTime(room_config)
-        self.rt60_sabine, _ = reverb_time.rt60s_bands(self.absorption_coeffs, self.absorption_bands, plot=plot)
+        self.rt60_sabine, _ = reverb_time.theory_rt60s_bands(self.absorption_coeffs, self.absorption_bands, plot=plot)
         self.rt60_sabine_bands_500 = self.rt60_sabine[2]
         self.tranistion_frequency = reverb_time.transition_frequency(self.rt60_sabine_bands_500, multiple=self.crossover_freq_multiple)
 
@@ -95,6 +95,7 @@ class ISMFDN:
     def process(self, x, type=None):
         y = np.zeros_like(x)
         if type == None: type = self.processing_type
+        
         print(f'ISMFDN: Processing {type}...')
         
         if type == 'serial': return self.process_serial(x, y)
@@ -104,7 +105,12 @@ class ISMFDN:
     def process_only_fdn(self, x):
         # start matlab process                
         matlab_eng = init_matlab_eng()
-        y =  matlab_eng.standard_fdn(self.fs, x * self.fdn_scaling_factor, self.fdn_delay_times, self.rt60_sabine)
+        y =  matlab_eng.standard_fdn(
+            self.fs,
+            x * self.fdn_scaling_factor, 
+            self.fdn_delay_times, 
+            self.rt60_sabine
+        )
         # end matlab process
         matlab_eng.quit()
         # mono
@@ -117,8 +123,26 @@ class ISMFDN:
         # start matlab process                
         matlab_eng = init_matlab_eng()
 
-        lr_one_pole = matlab_eng.velvet_fdn_one_pole(self.fs, x * self.fdn_scaling_factor , self.fdn_delay_times, self.rt60_sabine, self.absorption_bands, self.tranistion_frequency, self.matrix_type)
-        lr_fir      = matlab_eng.velvet_fdn_fir(self.fs, x * self.fdn_scaling_factor , self.fdn_delay_times, self.rt60_sabine, self.absorption_bands, self.matrix_type, self.lr_fir_taps, self.lr_fir_nyquist_decay_type)
+        lr_one_pole = matlab_eng.velvet_fdn_one_pole(
+            self.fs, 
+            x * self.fdn_scaling_factor, 
+            self.fdn_delay_times, 
+            self.rt60_sabine, 
+            self.absorption_bands, 
+            self.tranistion_frequency, 
+            self.matrix_type
+        )
+        
+        lr_fir      = matlab_eng.velvet_fdn_fir(
+            self.fs, 
+            x * self.fdn_scaling_factor, 
+            self.fdn_delay_times, 
+            self.rt60_sabine, 
+            self.absorption_bands, 
+            self.matrix_type,
+            self.lr_fir_taps, 
+            self.lr_fir_nyquist_decay_type
+        )
 
         lr_one_pole = np.array([t[0] for t in lr_one_pole])
         lr_fir      = np.array([t[0] for t in lr_fir])
@@ -159,9 +183,36 @@ class ISMFDN:
         matlab_eng = init_matlab_eng()
 
         # apply FDN reverberation to output of early reflection stage
-        lr_one_pole = matlab_eng.velvet_fdn_one_pole(self.fs, er_tdl * self.fdn_scaling_factor, self.fdn_delay_times, self.rt60_sabine, self.absorption_bands, self.tranistion_frequency, self.matrix_type)
-        lr_one_pole_multi = matlab_eng.velvet_fdn_one_pole(self.fs, er_signal_multi * self.fdn_scaling_factor, self.fdn_delay_times, self.rt60_sabine, self.absorption_bands, self.tranistion_frequency, self.matrix_type)
-        lr_fir = matlab_eng.velvet_fdn_fir(self.fs, er_tdl * self.fdn_scaling_factor, self.fdn_delay_times, self.rt60_sabine, self.absorption_bands, self.matrix_type, self.lr_fir_taps, self.lr_fir_nyquist_decay_type)
+        lr_one_pole = matlab_eng.velvet_fdn_one_pole(
+            self.fs, 
+            er_tdl * self.fdn_scaling_factor, 
+            self.fdn_delay_times, 
+            self.rt60_sabine, 
+            self.absorption_bands, 
+            self.tranistion_frequency, 
+            self.matrix_type
+        )
+        
+        lr_one_pole_multi = matlab_eng.velvet_fdn_one_pole(
+            self.fs, 
+            er_signal_multi * self.fdn_scaling_factor, 
+            self.fdn_delay_times, 
+            self.rt60_sabine, 
+            self.absorption_bands, 
+            self.tranistion_frequency, 
+            self.matrix_type
+        )
+        
+        lr_fir = matlab_eng.velvet_fdn_fir(
+            self.fs, 
+            er_tdl * self.fdn_scaling_factor, 
+            self.fdn_delay_times, 
+            self.rt60_sabine, 
+            self.absorption_bands, 
+            self.matrix_type, 
+            self.lr_fir_taps, 
+            self.lr_fir_nyquist_decay_type
+        )
 
         # end matlab process
         matlab_eng.quit()

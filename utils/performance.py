@@ -5,7 +5,7 @@ class Performance:
         self.start_time = perf_counter()
         self.threshold = buffer_size / fs
         
-        # instead use dict of times eg, times["total"]
+        # TODO: use dict of times eg, times["total"]
         
     def get_time(self):
         self.stop_time = perf_counter()

@@ -1,15 +1,15 @@
 % Velvet FDN where the stucture is inverted such that the output of
 % taken from the mixing matrix instead of the delay lines.
-function [rir] = velvet_fdn_fir(fs, er_signal, delay_times, rt60s, rt60_bands, matrix_type, filter_order, nyquist_decay_type)
+function [output] = velvet_fdn_fir(fs, input, delay_times, rt60s, rt60_bands, matrix_type, filter_order, nyquist_decay_type)
 fs = double(fs);
 
 % input signal
-x = transpose_row_2_col(er_signal);
+x = transpose_row_2_col(input);
 x = x(:,1); % TODO: Pass signal length
 
 % Define FDN
 N = size(delay_times, 2);
-numFDNInput = size(er_signal, 1);
+numFDNInput = size(input, 1);
 numFDNOutput = 1;
 inputGain = ones(N,numFDNInput);
 outputGain = ones(numFDNInput, N);
@@ -52,6 +52,6 @@ absorptionFeedbackMatrix = zFIR(matrixConvolution(feedbackMatrix, absorptionMatr
 output_transposed = processTransposedFDN(x, delays, absorptionFeedbackMatrix, inputGain, outputGain, direct);
 % lossless_output_transposed = processTransposedFDN(x, delays, feedbackMatrix, inputGain, outputGain, direct);
 
-rir = output_transposed;
+output = output_transposed;
 
 end

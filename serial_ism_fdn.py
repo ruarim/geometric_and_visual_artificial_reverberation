@@ -56,7 +56,7 @@ early_reflections = EarlyReflections(
 
 # TODO: inject room details from room object
 reverb_time = ReverbTime(room_config)
-rt60_sabine, rt60_eyring = reverb_time.rt60s_bands(absorption_coeffs, absorption_bands, plot=True)
+rt60_sabine, rt60_eyring = reverb_time.theory_rt60s_bands(absorption_coeffs, absorption_bands, plot=True)
 rt60_sabine_bands_500 = rt60_sabine[2]
 rt60_eyring_bands_500 = rt60_eyring[2]
 tranistion_frequency = reverb_time.transition_frequency(rt60_sabine_bands_500, multiple=4)
