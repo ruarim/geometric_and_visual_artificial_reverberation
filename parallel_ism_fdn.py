@@ -7,6 +7,7 @@ from utils.signals import signal
 from ism_fdn import ISMFDN
 from utils.room import Room
 from utils.convolve import fft_convolution
+from utils.matlab import init_matlab_eng
 
 # create instances of config classes
 simulation_config = SimulationConfig()
@@ -28,15 +29,20 @@ unit_impulse, _ = signal(
         fs,
 )
 
+matlab_eng = init_matlab_eng()
+    
 one_pole_rir, fir_rir = ISMFDN(
         fs, 
         simulation_config, 
-        room_config, 
+        room_config,
+        matlab_eng=matlab_eng, 
         fdn_N=-1,
         crossover_freq_multiple=room_config.SCHRODER_MULTIIPLE,
         processing_type='parallel',
         plot=True,
 ).process(unit_impulse)
+
+matlab_eng.quit()
 
 config_str = f'Parallel ISM-FDN RIR, ER Order: {room_config.ER_ORDER}, Room Dimensions: {room_config.ROOM_DIMS}'
 

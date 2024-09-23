@@ -17,7 +17,7 @@ overall_results = {}
 color_map = {
     'ISMFDN One-Pole N=16': 'orange',
     'ISMFDN FIR N=16': 'green',
-    'ISMFDN One-Pole N=24': 'purple',  # Replacing blue with purple
+    'ISMFDN One-Pole N=24': 'purple',
     'ISMFDN FIR N=24': 'red'
 }
 

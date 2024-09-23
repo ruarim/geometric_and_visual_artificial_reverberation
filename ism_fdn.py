@@ -14,7 +14,8 @@ from utils.delay import delay_array
 from utils.plot import plot_comparison
 
 class ISMFDN:
-    def __init__(self, fs: float, simulation_config: SimulationConfig, room_config: RoomConfig, fdn_N=-1, crossover_freq_multiple=4, processing_type='parallel', plot=False):
+    def __init__(self, fs: float, simulation_config: SimulationConfig, room_config: RoomConfig, matlab_eng, fdn_N=-1, crossover_freq_multiple=4, processing_type='parallel', plot=False):
+        self.matlab_eng = matlab_eng
         self.fs = fs
         self.fdn_N = fdn_N # TODO: From config
         self.crossover_freq_multiple = crossover_freq_multiple
@@ -102,17 +103,15 @@ class ISMFDN:
         if type == 'parallel': return self.process_parallel(x, y)
         if type == 'fdn_only': return self.process_only_fdn(x)
             
-    def process_only_fdn(self, x):
-        # start matlab process                
-        matlab_eng = init_matlab_eng()
-        y =  matlab_eng.standard_fdn(
+    def process_only_fdn(self, x):               
+        y =  self.matlab_eng.standard_fdn(
             self.fs,
             x * self.fdn_scaling_factor, 
             self.fdn_delay_times, 
             self.rt60_sabine
         )
         # end matlab process
-        matlab_eng.quit()
+        self.matlab_eng.quit()
         # mono
         y = np.array([t[0] for t in y])
         return y
@@ -120,10 +119,8 @@ class ISMFDN:
     def process_parallel(self, x, y):
         er_tdl, direct_sound = self.early_reflections.process(x, y, type='tdl')
         
-        # start matlab process                
-        matlab_eng = init_matlab_eng()
 
-        lr_one_pole = matlab_eng.velvet_fdn_one_pole(
+        lr_one_pole = self.matlab_eng.velvet_fdn_one_pole(
             self.fs, 
             x * self.fdn_scaling_factor, 
             self.fdn_delay_times, 
@@ -133,7 +130,7 @@ class ISMFDN:
             self.matrix_type
         )
         
-        lr_fir      = matlab_eng.velvet_fdn_fir(
+        lr_fir      = self.matlab_eng.velvet_fdn_fir(
             self.fs, 
             x * self.fdn_scaling_factor, 
             self.fdn_delay_times, 
@@ -161,9 +158,6 @@ class ISMFDN:
 
         rir_one_pole = direct_sound + er_tdl + lr_one_pole
         rir_fir = direct_sound + er_tdl + lr_fir
-
-        # end matlab process
-        matlab_eng.quit()
         
         if self.plot:
             er_lr_compare = {
@@ -179,11 +173,8 @@ class ISMFDN:
         er_tdl,             direct_sound = self.early_reflections.process(x, y, type='tdl')
         er_signal_multi,    direct_sound = self.early_reflections.process(x, y, type='multi-channel')
 
-        # start matlab process
-        matlab_eng = init_matlab_eng()
-
         # apply FDN reverberation to output of early reflection stage
-        lr_one_pole = matlab_eng.velvet_fdn_one_pole(
+        lr_one_pole = self.matlab_eng.velvet_fdn_one_pole(
             self.fs, 
             er_tdl * self.fdn_scaling_factor, 
             self.fdn_delay_times, 
@@ -193,7 +184,7 @@ class ISMFDN:
             self.matrix_type
         )
         
-        lr_one_pole_multi = matlab_eng.velvet_fdn_one_pole(
+        lr_one_pole_multi = self.matlab_eng.velvet_fdn_one_pole(
             self.fs, 
             er_signal_multi * self.fdn_scaling_factor, 
             self.fdn_delay_times, 
@@ -203,7 +194,7 @@ class ISMFDN:
             self.matrix_type
         )
         
-        lr_fir = matlab_eng.velvet_fdn_fir(
+        lr_fir = self.matlab_eng.velvet_fdn_fir(
             self.fs, 
             er_tdl * self.fdn_scaling_factor, 
             self.fdn_delay_times, 
@@ -213,10 +204,6 @@ class ISMFDN:
             self.lr_fir_taps, 
             self.lr_fir_nyquist_decay_type
         )
-
-        # end matlab process
-        matlab_eng.quit()
-
         # mono
         lr_one_pole       = np.array([x[0] for x in lr_one_pole])
         lr_one_pole_multi = np.array([x[0] for x in lr_one_pole_multi])

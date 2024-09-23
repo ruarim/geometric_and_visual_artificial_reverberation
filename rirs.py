@@ -3,6 +3,7 @@ import numpy as np
 from config import SimulationConfig, RoomConfig, TestConfig, OutputConfig
 from utils.signals import signal
 from utils.file import write_array_to_wav
+from utils.matlab import init_matlab_eng
 
 from ism_fdn import ISMFDN
 from sdn import SDN
@@ -25,6 +26,7 @@ def rirs_config(fs):
         file_name=test_config.FILE_NAME,
     )
     
+    matlab_eng = init_matlab_eng()
     fdn_N_delays = 16
     """
     Process RIR:
@@ -35,6 +37,7 @@ def rirs_config(fs):
         fs, 
         simulation_config, 
         room_config, 
+        matlab_eng=matlab_eng,
         fdn_N=-1, 
         processing_type='parallel',
     )
@@ -50,6 +53,7 @@ def rirs_config(fs):
         fs, 
         simulation_config, 
         room_config, 
+        matlab_eng=matlab_eng,
         fdn_N=fdn_N_delays, 
         processing_type='parallel'
     ).process(unit_impulse)
@@ -61,7 +65,8 @@ def rirs_config(fs):
     ism_fdn_hadamard = ISMFDN(
         fs, 
         simulation_config,
-        room_config, 
+        room_config,
+        matlab_eng=matlab_eng, 
         fdn_N=fdn_N_delays, 
         processing_type='fdn_only'
     ).process(unit_impulse)
@@ -83,6 +88,8 @@ def rirs_config(fs):
         fs=fs
     ).process(order=200, norm=True)
     
+    # end matlab process
+    matlab_eng.quit()
     
     return [
         {
