@@ -1,0 +1,21 @@
+Sample Type,Hadamard FDN One-Pole N=16,ISM Order=200,ISMFDN One-Pole N=16,ISMFDN FIR N=16,ISMFDN One-Pole N=24,ISMFDN FIR N=24,SDN,Real,Anechoic
+Drums,1,2,7,7,8,7,3,8,1
+Flute,5,8.5,7,8,5,6,7,8,1
+Clap,1,6,4,7,4,7.5,2,8,1
+Speech,1,6,5,6.5,4,6,2.5,7.5,1
+Drums,1,6,6,8,7,3,4,8,1
+Flute,6,7,2,6,7,3,8,8,1
+Clap,4,3.5,6,4,9,5,6,7,2
+Speech,2,7,6,4,7,4,5,6.5,1
+Drums,4.5,5,6,7.5,7,4.5,7,8,1
+Flute,7,4,8,5.5,6,6.5,5,5,1
+Clap,3,4,6,4,6,4.5,3,7,1
+Speech,4,4.5,6.5,5.5,4,6,3,5,1
+Drums,1,5,1,7,5,7,4.5,5,1
+Flute,6,5,1,7,1,6,5,6,1
+Clap,1,4,2,4,4,6,2,4,1
+Speech,2,7,8,5.5,7,5,3,6,1
+Drums,1,4,4,5,4,5,4,9,1
+Flute,4,5,8,4,5,2,4,9,1
+Clap,2,3,4,3,7,6,3,9,1
+Speech,2,2,7,5,2,8,5,9,1
