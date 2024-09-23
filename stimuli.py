@@ -1,14 +1,12 @@
-import numpy as np
 from os import listdir
-from random import randrange
+from random import shuffle
 
 from config import SimulationConfig, RoomConfig, TestConfig, OutputConfig
 from utils.signals import signal
 from utils.file import write_array_to_wav
+from utils.convolve import fft_convolution
 
 from rirs import rirs_config
-
-from utils.convolve import fft_convolution
 
 # config dataclasses
 simulation_config = SimulationConfig()
@@ -41,15 +39,15 @@ def get_rirs(fs):
             file_name=real_rir_file,
     )
     
+    # add the real rir
     rirs = rirs_config(fs)
     rirs.append({
         'name': "Small Hallway",
         'rir': real_rir,
     })
+    return rirs
 
 rirs = get_rirs(prev_fs)
-
-# add the real rir
 
 # generate RIR and apply to target audio
 for file in anechoic_files:
@@ -65,26 +63,28 @@ for file in anechoic_files:
         rirs = get_rirs(fs)
     
     file_name = file[:len(file)-4]
+    shuffle(rirs) # randomise order
+    
     # for audio files
-    for rir in rirs:
+    for rir, i in zip(rirs,  range(0, len(rirs))):
         name = rir['name']
         rir  = rir['rir']
-
+        
         if isinstance(rir, tuple):
             print('not signal')
             continue
-                        
-        random_order = randrange(0, 100)
+        
+        # apply rir to recording
         stimulus = fft_convolution(anechoic_audio, rir, norm=True)
         
         # normalise loudness (db)
         
         # output processed audio
         write_array_to_wav(
-            f"{stimuli_dir}/{file_name}", 
-            f"{random_order}_{name}_{file_name}", 
-            stimulus, 
-            fs, 
+            f"{stimuli_dir}{file_name}/", 
+            f"{i}_{name}_{file_name}", 
+            stimulus,
+            fs,
             time_stamp=False
         )
     
