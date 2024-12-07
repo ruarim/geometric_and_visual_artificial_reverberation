@@ -1,6 +1,6 @@
 # Geometric and Visual Artificial Reverberation
 
-This project focuses on creating artificial reverberation using geometric and image recogniton techniques. The implementation leverages the MATLAB fdnToolbox and Python.
+This project focuses on creating artificial reverberation using geometry mapping and image recogniton techniques. The implementation leverages the MATLAB fdnToolbox and Python.
 
 ### Prerequisites
 
