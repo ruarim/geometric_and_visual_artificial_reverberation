@@ -1,6 +1,6 @@
 # Geometric and Visual Artificial Reverberation
 
-This project focuses on creating artificial reverberation using geometry mapping and image recogniton techniques. The implementation leverages the MATLAB fdnToolbox and Python.
+This project uses geometry mapping and image recognition techniques to create artificial reverberation. The implementation leverages the MATLAB fdnToolbox and Python.
 
 ### Prerequisites
 
@@ -9,7 +9,7 @@ This project focuses on creating artificial reverberation using geometry mapping
 - **MATLAB**: Ensure MATLAB is installed on your system.
 - **fdnToolbox**: [GitHub](https://github.com/SebastianJiroSchlecht/fdnToolbox).
     - No need to download as the code is included in this repo.
-- **MATLAB vs-code extension**: Use the VS Code extension to add required files to the MATLAB folder. To do this, right-click on the folder and select `MATLAB: Add Folder To Path`.
+- **MATLAB vs-code extension**: Use the VS Code extension to add the required files to the MATLAB folder. To do this, right-click on the folder and select `MATLAB: Add Folder To Path`.
 
 #### Python Dependencies
 
