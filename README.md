@@ -20,11 +20,11 @@ pip3 install numpy scipy pyroomacoustics matlabengine matplotlib librosa sympy o
 ```
 
 ### Documentation
-- Add open api key to utils/api_key.py file.
-- Configure config.py with paths for surface images and 3D model in .obj format.
+- Add open API key to utils/api_key.py file.
+- Configure config.py with paths for surface images and .obj format 3D model.
 - Test geometry recognition via: `python3 model.py`
 - Test material extraction via: `python3 absorption.py`
 - Create RIRs with all models via: `python3 rirs.py`
-- Create proccessed samples with all models via: `python3 stimuli.py`
+- Create processed samples with all models via: `python3 stimuli.py`
 - Run Parallel ISMFDN via: `python3 parallel_ism_fdn.py`
 - Run Serial ISMFDN via: `python3 serial_ism_fdn.py`
